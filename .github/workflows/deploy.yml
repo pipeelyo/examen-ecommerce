@@ -22,9 +22,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      # Nunca se conecta de verdad en las pruebas unitarias (repositorio siempre mockeado) —
-      # solo necesita parsear como URL valida para que el cliente de Prisma se construya.
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/coupon_service?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
       INTERNAL_SERVICE_TOKEN: dev-internal-token
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +62,7 @@ jobs:
           docker build -f apps/backend/Dockerfile -t "$AR/backend:${{ github.sha }}" -t "$AR/backend:latest" .
           docker build -f apps/frontend/Dockerfile -t "$AR/frontend:${{ github.sha }}" -t "$AR/frontend:latest" .
           docker build -f apps/backend/services/discount-service/Dockerfile -t "$AR/discount-service:${{ github.sha }}" -t "$AR/discount-service:latest" .
+          docker build -t "$AR/catalog-service:${{ github.sha }}" -t "$AR/catalog-service:latest" apps/backend/services/catalog-service
           docker build -f apps/backend/services/coupon-service/Dockerfile -t "$AR/coupon-service:${{ github.sha }}" -t "$AR/coupon-service:latest" .
           docker push "$AR/backend:${{ github.sha }}"
           docker push "$AR/backend:latest"
@@ -70,6 +70,8 @@ jobs:
           docker push "$AR/frontend:latest"
           docker push "$AR/discount-service:${{ github.sha }}"
           docker push "$AR/discount-service:latest"
+          docker push "$AR/catalog-service:${{ github.sha }}"
+          docker push "$AR/catalog-service:latest"
           docker push "$AR/coupon-service:${{ github.sha }}"
           docker push "$AR/coupon-service:latest"
 
@@ -87,15 +89,32 @@ jobs:
             --from-literal=coupon-database-url="${{ secrets.CATALOG_DATABASE_URL }}" \
             --from-literal=coupon-direct-url="${{ secrets.CATALOG_DIRECT_URL }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+          if [ -n "${{ secrets.INTERNAL_SERVICE_TOKEN }}" ]; then
+            kubectl -n ecommerce create secret generic internal-token \
+              --from-literal=value="${{ secrets.INTERNAL_SERVICE_TOKEN }}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          fi
+          if [ -n "${{ secrets.CATALOG_DATABASE_URL }}" ]; then
+            DIRECT_URL="${{ secrets.CATALOG_DIRECT_URL }}"
+            if [ -z "$DIRECT_URL" ]; then DIRECT_URL="${{ secrets.CATALOG_DATABASE_URL }}"; fi
+            kubectl -n ecommerce create secret generic catalog-service-secrets \
+              --from-literal=DATABASE_URL="${{ secrets.CATALOG_DATABASE_URL }}" \
+              --from-literal=DIRECT_URL="$DIRECT_URL" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          fi
 
       - name: Apply and rollout
         run: |
           kubectl apply -f k8s/gke.yaml
+          kubectl apply -f k8s/discount-service.yaml
+          kubectl apply -f k8s/catalog-service.yaml
           kubectl -n ecommerce set image deployment/backend backend="$AR/backend:${{ github.sha }}"
           kubectl -n ecommerce set image deployment/frontend frontend="$AR/frontend:${{ github.sha }}"
           kubectl -n ecommerce set image deployment/discount-service discount-service="$AR/discount-service:${{ github.sha }}"
+          kubectl -n ecommerce set image deployment/catalog-service catalog-service="$AR/catalog-service:${{ github.sha }}"
           kubectl -n ecommerce set image deployment/coupon-service coupon-service="$AR/coupon-service:${{ github.sha }}"
           kubectl -n ecommerce rollout status deployment/backend --timeout=180s
           kubectl -n ecommerce rollout status deployment/frontend --timeout=180s
           kubectl -n ecommerce rollout status deployment/discount-service --timeout=180s
+          kubectl -n ecommerce rollout status deployment/catalog-service --timeout=180s
           kubectl -n ecommerce rollout status deployment/coupon-service --timeout=180s

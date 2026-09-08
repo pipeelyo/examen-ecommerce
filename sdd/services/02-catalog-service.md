@@ -26,7 +26,7 @@ INTERNAL_SERVICE_TOKEN=<mismo secreto compartido entre servicios>
 ## 4. Estructura de carpetas
 
 ```
-services/catalog-service/
+apps/backend/services/catalog-service/
 ├── prisma/
 │   ├── schema.prisma
 │   └── seed.ts
@@ -74,11 +74,15 @@ model Product {
 
 | Método | Ruta | Auth | Notas |
 |---|---|---|---|
-| `GET` | `/products` | Pública | HU1 — expuesto por gateway como `/api/v1/products` |
-| `POST` | `/admin/products` | `role=ADMIN` (verificado en gateway, reenviado con `X-Internal-Token`) | HU6 |
-| `PATCH` | `/admin/products/:id` | `role=ADMIN` | HU6 — no toca `stock` |
-| `PATCH` | `/admin/products/:id/stock` | `role=ADMIN` | HU6 — ajuste manual `{ delta }` |
-| `DELETE` | `/admin/products/:id` | `role=ADMIN` | HU6 — soft delete (`active=false`) |
+| `GET` | `/health` | ninguna | Sondas de GKE |
+| `GET` | `/api/docs` | ninguna | Swagger/OpenAPI (SDD §07) |
+| `GET` | `/products` | `X-Internal-Token` (el gateway lo expone público como `/api/v1/products`) | HU1 |
+| `GET` | `/products/:id` | `X-Internal-Token` | Incluye inactivos (soft delete) |
+| `GET` | `/categories` | `X-Internal-Token` | Select de HU6 |
+| `POST` | `/admin/products` | `X-Internal-Token` + `X-User-Role=ADMIN` | HU6 |
+| `PATCH` | `/admin/products/:id` | `X-Internal-Token` + `X-User-Role=ADMIN` | HU6 — no toca `stock` |
+| `PATCH` | `/admin/products/:id/stock` | `X-Internal-Token` + `X-User-Role=ADMIN` | HU6 — ajuste manual `{ delta }` |
+| `DELETE` | `/admin/products/:id` | `X-Internal-Token` + `X-User-Role=ADMIN` | HU6 — soft delete (`active=false`) |
 | `POST` | `/internal/stock/reserve` | `X-Internal-Token` | Saga paso 1 (SDD §09) |
 | `POST` | `/internal/stock/release` | `X-Internal-Token` | Saga — compensación |
 
@@ -170,7 +174,9 @@ spec:
   type: ClusterIP
 ```
 
-En Secret Manager: `catalog-service-database-url`, montado vía CSI Secret Store (SDD §11) — nunca como variable en el YAML plano.
+El SDD §11 nombra el namespace `ecommerce-prod`. El cluster GKE de esta entrega usa `ecommerce`; los manifiestos vivos están en `k8s/catalog-service.yaml` (ClusterIP). CI/CD: `.github/workflows/deploy.yml` construye la imagen, aplica el manifiesto y hace rollout.
+
+En Secret Manager / GitHub Actions secret `CATALOG_DATABASE_URL`: URL de Postgres (schema `catalog`) — nunca como variable en el YAML plano.
 
 ## 11. Definition of Done
 

@@ -1,3 +1,4 @@
+import { Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import type { CouponRecord, CouponScope } from "./resolve-coupon";
 
@@ -29,6 +30,7 @@ export interface AvailableCoupon {
 
 const prisma = new PrismaClient();
 
+@Injectable()
 export class CouponsRepository {
   async findByCode(code: string): Promise<CouponRecord | null> {
     const coupon = await prisma.coupon.findUnique({ where: { code } });

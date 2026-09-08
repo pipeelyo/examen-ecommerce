@@ -1,11 +1,28 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import type { CreateCouponInput, UpdateCouponInput } from "./coupons.repository";
 import { CouponsService } from "./coupons.service";
 import { InternalTokenGuard } from "./internal-token.guard";
 
 @Controller()
 export class CouponsController {
-  constructor(private readonly coupons: CouponsService) {}
+  constructor(
+    @Inject(CouponsService)
+    private readonly coupons: CouponsService,
+  ) {}
+
+  @Get("health")
+  health() {
+    return { status: "ok", service: "coupon-service" };
+  }
 
   @Get("available")
   available() {

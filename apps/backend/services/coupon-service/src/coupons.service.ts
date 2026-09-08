@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import {
   CouponsRepository,
   type AvailableCoupon,
@@ -10,7 +10,8 @@ import { resolveCoupon, type ResolveCouponResult } from "./resolve-coupon";
 @Injectable()
 export class CouponsService {
   constructor(
-    private readonly repository: CouponsRepository = new CouponsRepository(),
+    @Inject(CouponsRepository)
+    private readonly repository: CouponsRepository,
   ) {}
 
   async resolve(code: string, now: Date = new Date()): Promise<ResolveCouponResult> {

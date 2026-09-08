@@ -3,9 +3,18 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { OrdersModule } from "./orders/orders.module";
+import { OrdersRepository } from "./orders/orders.repository";
+import { OutboxRelay } from "./outbox/outbox-relay";
+import { RedisEventPublisher } from "./outbox/redis-publisher";
 
 async function bootstrap() {
   const app = await NestFactory.create(OrdersModule);
+
+  const relay = new OutboxRelay(
+    new OrdersRepository(),
+    new RedisEventPublisher(process.env.REDIS_URL ?? "redis://redis:6379"),
+  );
+  relay.start();
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

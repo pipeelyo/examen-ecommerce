@@ -1,0 +1,49 @@
+# Redis para Pub/Sub (order.events) y, a futuro, cache/pool de conexiones (SDD §10).
+# Sin PersistentVolume a proposito: Pub/Sub es efimero por diseño (at-most-once,
+# SDD §09) — si el pod se reinicia, el peor caso es perder mensajes en vuelo,
+# nunca datos de negocio (esos viven en Supabase, no aqui).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP

@@ -1,17 +1,13 @@
 {
-  "name": "order-service",
+  "name": "notification-service",
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "postinstall": "prisma generate",
-    "build": "prisma generate && tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "dev": "tsx watch src/main.ts",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate:dev": "prisma migrate dev"
+    "test:coverage": "vitest run --coverage"
   },
   "engines": {
     "node": ">=20"
@@ -20,15 +16,9 @@
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",
-    "@nestjs/swagger": "^11.2.0",
-    "@prisma/client": "^6.19.3",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
     "ioredis": "^5.11.1",
-    "prisma": "^6.19.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2",
-    "swagger-ui-express": "^5.0.1"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

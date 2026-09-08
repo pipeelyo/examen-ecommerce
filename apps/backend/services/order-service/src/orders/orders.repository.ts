@@ -30,6 +30,13 @@ export interface PersistedOrder {
   createdAt: Date;
 }
 
+export interface OutboxEventRecord {
+  id: string;
+  eventType: string;
+  aggregateId: string;
+  payload: unknown;
+}
+
 const prisma = new PrismaClient();
 
 export class OrdersRepository {
@@ -86,5 +93,23 @@ export class OrdersRepository {
 
   async findById(id: string) {
     return prisma.order.findUnique({ where: { id }, include: { items: true } });
+  }
+
+  async findPendingOutboxEvents(limit: number): Promise<OutboxEventRecord[]> {
+    const rows = await prisma.outboxEvent.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      eventType: row.eventType,
+      aggregateId: row.aggregateId,
+      payload: row.payload,
+    }));
+  }
+
+  async markOutboxEventPublished(id: string): Promise<void> {
+    await prisma.outboxEvent.update({ where: { id }, data: { status: "PUBLISHED" } });
   }
 }

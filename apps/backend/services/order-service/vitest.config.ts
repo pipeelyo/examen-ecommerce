@@ -19,6 +19,7 @@ export default defineConfig({
         "src/clients/discount.client.ts",
         "src/common/internal-token.guard.ts",
         "src/health.controller.ts",
+        "src/outbox/redis-publisher.ts",
       ],
       thresholds: {
         statements: 85,

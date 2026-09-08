@@ -28,6 +28,8 @@ spec:
               value: http://coupon-service:3003
             - name: DISCOUNT_SERVICE_URL
               value: http://discount-service:3001
+            - name: REDIS_URL
+              value: redis://redis:6379
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

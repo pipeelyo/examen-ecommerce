@@ -1,8 +1,9 @@
-name: deploy
+name: ci-cd
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -18,7 +19,31 @@ env:
   SA: github-deploy@round-seeker-309101.iam.gserviceaccount.com
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Nunca se conecta de verdad en las pruebas unitarias (repositorio siempre mockeado) —
+      # solo necesita parsear como URL valida para que el cliente de Prisma se construya.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/coupon_service?schema=public
+      INTERNAL_SERVICE_TOKEN: dev-internal-token
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - run: npm ci
+
+      - name: lint + build
+        run: npm run build
+
+      - name: test + coverage (gate 80%, 90-95% en motor/cupones)
+        run: npm run test:coverage
+
   deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +62,16 @@ jobs:
         run: |
           docker build -f apps/backend/Dockerfile -t "$AR/backend:${{ github.sha }}" -t "$AR/backend:latest" .
           docker build -f apps/frontend/Dockerfile -t "$AR/frontend:${{ github.sha }}" -t "$AR/frontend:latest" .
+          docker build -f apps/backend/services/discount-service/Dockerfile -t "$AR/discount-service:${{ github.sha }}" -t "$AR/discount-service:latest" .
+          docker build -f apps/backend/services/coupon-service/Dockerfile -t "$AR/coupon-service:${{ github.sha }}" -t "$AR/coupon-service:latest" .
           docker push "$AR/backend:${{ github.sha }}"
           docker push "$AR/backend:latest"
           docker push "$AR/frontend:${{ github.sha }}"
           docker push "$AR/frontend:latest"
+          docker push "$AR/discount-service:${{ github.sha }}"
+          docker push "$AR/discount-service:latest"
+          docker push "$AR/coupon-service:${{ github.sha }}"
+          docker push "$AR/coupon-service:latest"
 
       - uses: google-github-actions/get-gke-credentials@v2
         with:
@@ -48,10 +79,23 @@ jobs:
           location: ${{ env.REGION }}
           project_id: ${{ env.PROJECT }}
 
+      - name: Ensure shared service secrets exist
+        run: |
+          kubectl create namespace ecommerce --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n ecommerce create secret generic service-secrets \
+            --from-literal=internal-service-token="${{ secrets.INTERNAL_SERVICE_TOKEN || 'dev-internal-token' }}" \
+            --from-literal=coupon-database-url="${{ secrets.CATALOG_DATABASE_URL }}" \
+            --from-literal=coupon-direct-url="${{ secrets.CATALOG_DIRECT_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Apply and rollout
         run: |
           kubectl apply -f k8s/gke.yaml
           kubectl -n ecommerce set image deployment/backend backend="$AR/backend:${{ github.sha }}"
           kubectl -n ecommerce set image deployment/frontend frontend="$AR/frontend:${{ github.sha }}"
+          kubectl -n ecommerce set image deployment/discount-service discount-service="$AR/discount-service:${{ github.sha }}"
+          kubectl -n ecommerce set image deployment/coupon-service coupon-service="$AR/coupon-service:${{ github.sha }}"
           kubectl -n ecommerce rollout status deployment/backend --timeout=180s
           kubectl -n ecommerce rollout status deployment/frontend --timeout=180s
+          kubectl -n ecommerce rollout status deployment/discount-service --timeout=180s
+          kubectl -n ecommerce rollout status deployment/coupon-service --timeout=180s

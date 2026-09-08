@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooler (pgbouncer, transaction mode) — usado en runtime
+  directUrl = env("DIRECT_URL") // conexion directa (session mode) — usada solo por prisma migrate
+}
+
+model Coupon {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  label           String
+  scope           String // "GLOBAL" | "CATEGORY"
+  categoryName    String?   @map("category_name")
+  discountPercent Int       @map("discount_percent")
+  active          Boolean   @default(true)
+  validFrom       DateTime? @map("valid_from")
+  validTo         DateTime? @map("valid_to")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("coupons")
+}

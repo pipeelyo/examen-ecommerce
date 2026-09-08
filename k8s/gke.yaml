@@ -100,3 +100,113 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-service
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discount-service
+  template:
+    metadata:
+      labels:
+        app: discount-service
+    spec:
+      containers:
+        - name: discount-service
+          image: us-central1-docker.pkg.dev/round-seeker-309101/ecommerce/discount-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: service-secrets
+                  key: internal-service-token
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discount-service
+  namespace: ecommerce
+spec:
+  # Sin type: LoadBalancer a proposito — ClusterIP por defecto, solo alcanzable
+  # desde dentro del cluster (SDD §07: ningun servicio interno es publico).
+  selector:
+    app: discount-service
+  ports:
+    - port: 3001
+      targetPort: 3001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coupon-service
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coupon-service
+  template:
+    metadata:
+      labels:
+        app: coupon-service
+    spec:
+      containers:
+        - name: coupon-service
+          image: us-central1-docker.pkg.dev/round-seeker-309101/ecommerce/coupon-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3003
+          env:
+            - name: PORT
+              value: "3003"
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: service-secrets
+                  key: internal-service-token
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: service-secrets
+                  key: coupon-database-url
+            - name: DIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: service-secrets
+                  key: coupon-direct-url
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coupon-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: coupon-service
+  ports:
+    - port: 3003
+      targetPort: 3003

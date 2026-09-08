@@ -64,6 +64,7 @@ jobs:
           docker build -f apps/backend/services/discount-service/Dockerfile -t "$AR/discount-service:${{ github.sha }}" -t "$AR/discount-service:latest" .
           docker build -t "$AR/catalog-service:${{ github.sha }}" -t "$AR/catalog-service:latest" apps/backend/services/catalog-service
           docker build -f apps/backend/services/coupon-service/Dockerfile -t "$AR/coupon-service:${{ github.sha }}" -t "$AR/coupon-service:latest" .
+          docker build -f apps/backend/services/order-service/Dockerfile -t "$AR/order-service:${{ github.sha }}" -t "$AR/order-service:latest" .
           docker push "$AR/backend:${{ github.sha }}"
           docker push "$AR/backend:latest"
           docker push "$AR/frontend:${{ github.sha }}"
@@ -74,6 +75,8 @@ jobs:
           docker push "$AR/catalog-service:latest"
           docker push "$AR/coupon-service:${{ github.sha }}"
           docker push "$AR/coupon-service:latest"
+          docker push "$AR/order-service:${{ github.sha }}"
+          docker push "$AR/order-service:latest"
 
       - uses: google-github-actions/get-gke-credentials@v2
         with:
@@ -102,6 +105,14 @@ jobs:
               --from-literal=DIRECT_URL="$DIRECT_URL" \
               --dry-run=client -o yaml | kubectl apply -f -
           fi
+          if [ -n "${{ secrets.ORDER_DATABASE_URL }}" ]; then
+            ORDER_DIRECT_URL="${{ secrets.ORDER_DIRECT_URL }}"
+            if [ -z "$ORDER_DIRECT_URL" ]; then ORDER_DIRECT_URL="${{ secrets.ORDER_DATABASE_URL }}"; fi
+            kubectl -n ecommerce create secret generic order-service-secrets \
+              --from-literal=DATABASE_URL="${{ secrets.ORDER_DATABASE_URL }}" \
+              --from-literal=DIRECT_URL="$ORDER_DIRECT_URL" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          fi
 
       - name: Apply and rollout
         run: |
@@ -118,3 +129,10 @@ jobs:
           kubectl -n ecommerce rollout status deployment/discount-service --timeout=180s
           kubectl -n ecommerce rollout status deployment/catalog-service --timeout=180s
           kubectl -n ecommerce rollout status deployment/coupon-service --timeout=180s
+          if [ -n "${{ secrets.ORDER_DATABASE_URL }}" ]; then
+            kubectl apply -f k8s/order-service.yaml
+            kubectl -n ecommerce set image deployment/order-service order-service="$AR/order-service:${{ github.sha }}"
+            kubectl -n ecommerce rollout status deployment/order-service --timeout=180s
+          else
+            echo "ORDER_DATABASE_URL missing; skipping order-service rollout"
+          fi

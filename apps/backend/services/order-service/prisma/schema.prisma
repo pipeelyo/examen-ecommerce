@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Order {
+  id                     String      @id @default(uuid())
+  userId                 String?     @map("user_id")
+  guestFullName          String?     @map("guest_full_name")
+  guestEmail             String?     @map("guest_email")
+  guestPhone             String?     @map("guest_phone")
+  guestAddress           String?     @map("guest_address")
+  originalSubtotal       Int         @map("original_subtotal")
+  categoryDiscountAmount Int         @map("category_discount_amount")
+  volumeDiscountAmount   Int         @map("volume_discount_amount")
+  couponDiscountAmount   Int         @map("coupon_discount_amount")
+  discountCapped         Boolean     @map("discount_capped")
+  finalTotal             Int         @map("final_total")
+  status                 String      @default("CONFIRMED")
+  items                  OrderItem[]
+  outboxEvents           OutboxEvent[]
+  createdAt              DateTime    @default(now()) @map("created_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                 String  @id @default(uuid())
+  orderId            String  @map("order_id")
+  order              Order   @relation(fields: [orderId], references: [id])
+  productId          String  @map("product_id")
+  categorySnapshot   String  @map("category_snapshot")
+  unitPriceSnapshot  Decimal @map("unit_price_snapshot") @db.Decimal(12, 2)
+  quantity           Int
+  lineDiscountAmount Int     @default(0) @map("line_discount_amount")
+
+  @@map("order_items")
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid())
+  aggregateType String    @map("aggregate_type")
+  aggregateId   String    @map("aggregate_id")
+  order         Order     @relation(fields: [aggregateId], references: [id])
+  eventType     String    @map("event_type")
+  payload       Json
+  status        String    @default("PENDING")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("outbox_events")
+}

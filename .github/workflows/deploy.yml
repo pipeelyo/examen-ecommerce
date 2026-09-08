@@ -18,7 +18,23 @@ env:
   SA: github-deploy@round-seeker-309101.iam.gserviceaccount.com
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install and test microservices
+        run: |
+          npm install
+          npm test -w discount-service
+          npm run test:coverage -w discount-service
+          npm test -w catalog-service
+          npm run test:coverage -w catalog-service
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +53,16 @@ jobs:
         run: |
           docker build -f apps/backend/Dockerfile -t "$AR/backend:${{ github.sha }}" -t "$AR/backend:latest" .
           docker build -f apps/frontend/Dockerfile -t "$AR/frontend:${{ github.sha }}" -t "$AR/frontend:latest" .
+          docker build -t "$AR/discount-service:${{ github.sha }}" -t "$AR/discount-service:latest" apps/backend/services/discount-service
+          docker build -t "$AR/catalog-service:${{ github.sha }}" -t "$AR/catalog-service:latest" apps/backend/services/catalog-service
           docker push "$AR/backend:${{ github.sha }}"
           docker push "$AR/backend:latest"
           docker push "$AR/frontend:${{ github.sha }}"
           docker push "$AR/frontend:latest"
+          docker push "$AR/discount-service:${{ github.sha }}"
+          docker push "$AR/discount-service:latest"
+          docker push "$AR/catalog-service:${{ github.sha }}"
+          docker push "$AR/catalog-service:latest"
 
       - uses: google-github-actions/get-gke-credentials@v2
         with:
@@ -48,10 +70,28 @@ jobs:
           location: ${{ env.REGION }}
           project_id: ${{ env.PROJECT }}
 
-      - name: Apply and rollout
+      - name: Apply secrets, manifests and rollout
         run: |
+          if [ -n "${{ secrets.INTERNAL_SERVICE_TOKEN }}" ]; then
+            kubectl -n ecommerce create secret generic internal-token \
+              --from-literal=value="${{ secrets.INTERNAL_SERVICE_TOKEN }}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          fi
           kubectl apply -f k8s/gke.yaml
+          kubectl apply -f k8s/discount-service.yaml
           kubectl -n ecommerce set image deployment/backend backend="$AR/backend:${{ github.sha }}"
           kubectl -n ecommerce set image deployment/frontend frontend="$AR/frontend:${{ github.sha }}"
+          kubectl -n ecommerce set image deployment/discount-service discount-service="$AR/discount-service:${{ github.sha }}"
           kubectl -n ecommerce rollout status deployment/backend --timeout=180s
           kubectl -n ecommerce rollout status deployment/frontend --timeout=180s
+          kubectl -n ecommerce rollout status deployment/discount-service --timeout=180s
+          if [ -n "${{ secrets.CATALOG_DATABASE_URL }}" ]; then
+            kubectl -n ecommerce create secret generic catalog-service-secrets \
+              --from-literal=DATABASE_URL="${{ secrets.CATALOG_DATABASE_URL }}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+            kubectl apply -f k8s/catalog-service.yaml
+            kubectl -n ecommerce set image deployment/catalog-service catalog-service="$AR/catalog-service:${{ github.sha }}"
+            kubectl -n ecommerce rollout status deployment/catalog-service --timeout=180s
+          else
+            echo "CATALOG_DATABASE_URL missing; skipping catalog-service rollout"
+          fi

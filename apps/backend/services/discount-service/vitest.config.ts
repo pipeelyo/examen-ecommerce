@@ -11,6 +11,8 @@ export default defineConfig({
         "src/discount-engine.controller.ts",
         "src/discount-engine.module.ts",
         "src/internal-token.guard.ts",
+        "src/health.controller.ts",
+        "src/calculate-discounts.dto.ts",
       ],
       thresholds: {
         statements: 95,

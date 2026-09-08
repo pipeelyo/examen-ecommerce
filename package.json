@@ -8,7 +8,8 @@
     "test:coverage": "npm run build -w @examen/discount-engine && npm run test:coverage --workspaces --if-present",
     "dev:backend": "npm run start:dev -w @examen/backend",
     "dev:frontend": "npm run dev -w @examen/frontend",
-    "dev:discount": "npm run dev -w discount-service"
+    "dev:discount": "npm run dev -w discount-service",
+    "dev:catalog": "npm run dev -w catalog-service"
   },
   "engines": {
     "node": ">=20"

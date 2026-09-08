@@ -7,7 +7,7 @@
 | Hace | No hace |
 |---|---|
 | Recibe un carrito + un cupón ya resuelto, calcula la cascada Categoría → Volumen → Cupón → tope 35% | No consulta stock, no persiste nada, no conoce a Prisma ni a HTTP fuera de su propio controlador |
-| Expone `POST /internal/discounts/calculate` | No decide si un cupón existe o está vigente — eso lo hace `coupon-service` (ver `02-coupon-service.md`) |
+| Expone `POST /internal/discounts/calculate` | No decide si un cupón existe o está vigente — eso lo hace `coupon-service` (ver `03-coupon-service.md`) |
 | Devuelve un `CheckoutBreakdown` plano | No emite eventos, no habla con Redis |
 
 ## 2. Prerrequisitos
@@ -19,14 +19,15 @@ Ninguno. Es el único servicio que se puede escribir, probar y dejar 100% termin
 ```
 PORT=3001
 NODE_ENV=development
+INTERNAL_SERVICE_TOKEN=dev-internal-token
 ```
 
-No necesita `DATABASE_URL`, `REDIS_URL` ni claves de Supabase — si tu `.env.example` para este servicio tiene alguna de esas, es una señal de que se filtró una dependencia que no debería existir (repórtalo como hallazgo en `docs/ia.md`, es del tipo "corrección a la IA").
+`PORT` y `NODE_ENV` son las únicas del alcance de SDD §1 para este micro (no posee estado ni DB). `INTERNAL_SERVICE_TOKEN` entra por SDD §07/§08: el endpoint interno exige `X-Internal-Token`. No necesita `DATABASE_URL`, `REDIS_URL` ni claves de Supabase — si tu `.env.example` para este servicio tiene alguna de esas, es una señal de que se filtró una dependencia que no debería existir (repórtalo como hallazgo en `docs/ia.md`, es del tipo "corrección a la IA").
 
 ## 4. Estructura de carpetas
 
 ```
-services/discount-service/
+apps/backend/services/discount-service/
 ├── src/
 │   ├── strategies/
 │   │   ├── discount-strategy.interface.ts
@@ -35,9 +36,13 @@ services/discount-service/
 │   │   └── coupon-discount.strategy.ts
 │   ├── factories/
 │   │   └── discount-strategy.factory.ts
+│   ├── apply-absolute-cap.ts
+│   ├── money.ts
 │   ├── discount-engine.service.ts
 │   ├── discount-engine.controller.ts
 │   ├── discount-engine.module.ts
+│   ├── internal-token.guard.ts
+│   ├── health.controller.ts
 │   └── main.ts
 ├── test/
 │   └── unit/
@@ -56,6 +61,8 @@ services/discount-service/
 
 | Método | Ruta | Auth | Body | Response |
 |---|---|---|---|---|
+| `GET` | `/health` | ninguna (sondas de K8s) | — | `{ status, service }` |
+| `GET` | `/api/docs` | ninguna | — | Swagger UI (SDD §07) |
 | `POST` | `/internal/discounts/calculate` | `X-Internal-Token` (ver SDD §07) | `DiscountContext` (ver abajo) | `CheckoutBreakdown` |
 
 ## 6. Contratos (copiar tal cual del SDD §04, no reinterpretar)
@@ -95,6 +102,8 @@ export interface DiscountStrategy {
   apply(ctx: DiscountContext): DiscountResult;
 }
 ```
+
+En código, `apply()` devuelve `{ result, ctx }` (`StrategyOutcome`) para que `remainingAmount` fluya al siguiente paso (necesario para cupones de categoría). El `DiscountResult` del SDD sigue siendo el contrato HTTP de cada línea del breakdown.
 
 **Importante:** `discount-service` recibe `resolvedCoupon` **ya resuelto** — no recibe el `couponCode` en texto. Quien decide si el código existe, está activo, y si `now` cae dentro de `[valid_from, valid_to]` es `coupon-service` (§04 "Vigencia = dos fechas, no una"). Si `discount-service` empieza a validar cupones, es una fuga de responsabilidad — repórtalo si lo ves en una sugerencia de IA.
 
@@ -146,49 +155,9 @@ No necesita Docker Compose para probarse aislado — es Node puro. Sí entra en 
 
 ## 10. Despliegue en GCP (Nivel Enterprise, SDD §11)
 
-```dockerfile
-# services/discount-service/Dockerfile
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
+El `Dockerfile` real de este paquete usa `npm install` (no hay `package-lock.json` aquí). El Service es **ClusterIP** — nunca LoadBalancer (SDD §07/§11).
 
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-EXPOSE 3001
-CMD ["node", "dist/main.js"]
-```
-
-```yaml
-# k8s/discount-service.yaml — sin PVC, sin Secret de DB: no los necesita
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: discount-service, namespace: ecommerce-prod }
-spec:
-  replicas: 2
-  selector: { matchLabels: { app: discount-service } }
-  template:
-    metadata: { labels: { app: discount-service } }
-    spec:
-      containers:
-        - name: discount-service
-          image: REGION-docker.pkg.dev/PROJECT/repo/discount-service:SHA
-          ports: [{ containerPort: 3001 }]
-          env:
-            - { name: INTERNAL_SERVICE_TOKEN, valueFrom: { secretKeyRef: { name: internal-token, key: value } } }
----
-apiVersion: v1
-kind: Service
-metadata: { name: discount-service, namespace: ecommerce-prod }
-spec:
-  selector: { app: discount-service }
-  ports: [{ port: 3001, targetPort: 3001 }]
-  type: ClusterIP   # nunca LoadBalancer — este servicio no es público (SDD §07)
-```
+El SDD §11 nombra el namespace `ecommerce-prod` y el ejemplo ilustra 2 réplicas. El cluster GKE de esta entrega ya usa `ecommerce` (monolito frontend/backend); el manifiesto vivo `k8s/discount-service.yaml` despliega ahí, ClusterIP, 1 réplica Autopilot (ahorro de costo en este incremento), sin PVC ni Secret de DB. Llamada interna: `http://discount-service.ecommerce.svc.cluster.local:3001`.
 
 ## 11. Definition of Done antes de pasar al siguiente servicio
 

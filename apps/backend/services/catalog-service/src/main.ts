@@ -2,10 +2,10 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { DiscountEngineModule } from "./discount-engine.module";
+import { CatalogModule } from "./catalog.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(DiscountEngineModule);
+  const app = await NestFactory.create(CatalogModule);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -15,9 +15,9 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle("discount-service")
+    .setTitle("catalog-service")
     .setDescription(
-      "Motor de descuentos acumulativos. Sin estado ni DB. POST /internal/discounts/calculate (SDD §01, §04).",
+      "Dueño de products y categories. HU1 catálogo, HU6 admin, reserva/liberación de stock (SDD §01, §06, §09).",
     )
     .setVersion("1.0")
     .addApiKey(
@@ -27,7 +27,7 @@ async function bootstrap() {
     .build();
   SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
 
-  await app.listen(process.env.PORT || 3001, "0.0.0.0");
+  await app.listen(process.env.PORT || 3002, "0.0.0.0");
 }
 
 bootstrap();

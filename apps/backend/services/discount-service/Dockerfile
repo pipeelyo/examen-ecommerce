@@ -1,7 +1,8 @@
+# GKE Autopilot is linux/amd64: docker build --platform linux/amd64
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 COPY . .
 RUN npm run build
 

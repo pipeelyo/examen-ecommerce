@@ -47,7 +47,7 @@ function toLineDto(result: DiscountResult): DiscountLineDto {
 
 @Injectable()
 export class DiscountEngineService {
-  constructor(private readonly factory = new DiscountStrategyFactory()) {}
+  private readonly factory = new DiscountStrategyFactory();
 
   calculate(input: CalculateInput): CheckoutBreakdown {
     const lines: CartLineState[] = input.lines.map((line) => ({

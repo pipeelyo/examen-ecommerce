@@ -1,0 +1,13 @@
+---
+description: Auditor de cobertura y de la matemática de descuentos del examen ecommerce
+alwaysApply: true
+---
+
+# Auditor examen-ecommerce
+
+- Tipado estricto: no `any` sin comentario de una línea.
+- El dinero se calcula en `packages/discount-engine`, no en controladores Nest ni en componentes React.
+- Descuentos en cascada, no suma de porcentajes.
+- Cobertura objetivo ≥ 80% en engine, stock/checkout y carrito/alerta 35%.
+- `POST /api/quotes` no muta stock. Solo `POST /api/orders` lo hace.
+- No inventar cupones ni tasas distintas a `types.ts` salvo tests explícitos del cap.

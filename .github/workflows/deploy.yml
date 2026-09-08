@@ -1,0 +1,57 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT: round-seeker-309101
+  REGION: us-central1
+  CLUSTER: ecommerce
+  AR: us-central1-docker.pkg.dev/round-seeker-309101/ecommerce
+  WIF: projects/741064653110/locations/global/workloadIdentityPools/github/providers/github
+  SA: github-deploy@round-seeker-309101.iam.gserviceaccount.com
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF }}
+          service_account: ${{ env.SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Docker auth
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and push
+        run: |
+          docker build -f apps/backend/Dockerfile -t "$AR/backend:${{ github.sha }}" -t "$AR/backend:latest" .
+          docker build -f apps/frontend/Dockerfile -t "$AR/frontend:${{ github.sha }}" -t "$AR/frontend:latest" .
+          docker push "$AR/backend:${{ github.sha }}"
+          docker push "$AR/backend:latest"
+          docker push "$AR/frontend:${{ github.sha }}"
+          docker push "$AR/frontend:latest"
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER }}
+          location: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT }}
+
+      - name: Apply and rollout
+        run: |
+          kubectl apply -f k8s/gke.yaml
+          kubectl -n ecommerce set image deployment/backend backend="$AR/backend:${{ github.sha }}"
+          kubectl -n ecommerce set image deployment/frontend frontend="$AR/frontend:${{ github.sha }}"
+          kubectl -n ecommerce rollout status deployment/backend --timeout=180s
+          kubectl -n ecommerce rollout status deployment/frontend --timeout=180s

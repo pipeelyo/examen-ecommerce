@@ -1,0 +1,1542 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>SDD Descuentos Acumulativos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EAECF1; --surface-3:#DEE2EA;
+  --border:#D7DBE3; --border-strong:#C1C7D3;
+  --text:#1A2233; --text-muted:#5B6473; --text-faint:#8890A0;
+  --accent:#2E5EAA; --accent-strong:#1F4685; --accent-soft:#E3EBF7;
+  --warm:#C1652E; --warm-soft:#F7E9DD;
+  --ok:#2F8F5B; --ok-soft:#E3F3EA;
+  --warn:#B8862B; --warn-soft:#FBF0DC;
+  --danger:#C0392B; --danger-soft:#FAE4E1;
+  --code-bg:#101826; --code-text:#D9E2F1; --code-border:#233047;
+  --font-display:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --font-body:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+  --shadow: 0 1px 2px rgba(20,30,50,.06), 0 4px 14px rgba(20,30,50,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10141C; --surface:#161C27; --surface-2:#1D2531; --surface-3:#242D3B;
+    --border:#2B3444; --border-strong:#3A4457;
+    --text:#E7EAF0; --text-muted:#A7B0C0; --text-faint:#727C8E;
+    --accent:#7CA3EA; --accent-strong:#9DBDF3; --accent-soft:#1D2C44;
+    --warm:#E08A4F; --warm-soft:#382A1E;
+    --ok:#5FBE8A; --ok-soft:#173226;
+    --warn:#E0B25C; --warn-soft:#3A2F16;
+    --danger:#E17161; --danger-soft:#3A1E1C;
+    --code-bg:#0B0F17; --code-text:#D9E2F1; --code-border:#1E2A3F;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10141C; --surface:#161C27; --surface-2:#1D2531; --surface-3:#242D3B;
+  --border:#2B3444; --border-strong:#3A4457;
+  --text:#E7EAF0; --text-muted:#A7B0C0; --text-faint:#727C8E;
+  --accent:#7CA3EA; --accent-strong:#9DBDF3; --accent-soft:#1D2C44;
+  --warm:#E08A4F; --warm-soft:#382A1E;
+  --ok:#5FBE8A; --ok-soft:#173226;
+  --warn:#E0B25C; --warn-soft:#3A2F16;
+  --danger:#E17161; --danger-soft:#3A1E1C;
+  --code-bg:#0B0F17; --code-text:#D9E2F1; --code-border:#1E2A3F;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--font-body); font-size:15.5px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; color:var(--text); text-wrap:balance; line-height:1.25;}
+p{max-width:70ch;}
+a{color:var(--accent);}
+code, pre, .mono{font-family:var(--font-mono);}
+::selection{background:var(--accent-soft);}
+
+.layout{display:grid; grid-template-columns:288px 1fr; min-height:100vh;}
+@media (max-width:920px){ .layout{grid-template-columns:1fr;} }
+
+/* ---------- Sidebar / TOC ---------- */
+.toc{
+  position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  background:var(--surface); border-right:1px solid var(--border);
+  padding:22px 18px 40px;
+}
+@media (max-width:920px){
+  .toc{position:static; height:auto; border-right:none; border-bottom:1px solid var(--border); padding:16px;}
+}
+.toc-brand{display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+.toc-brand .mark{
+  width:34px; height:34px; border-radius:8px; background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:15px; flex:none;
+}
+.toc-brand .name{font-family:var(--font-display); font-weight:600; font-size:14.5px; line-height:1.2;}
+.toc-brand .name small{display:block; font-family:var(--font-body); font-weight:400; color:var(--text-faint); font-size:11px; letter-spacing:.03em; text-transform:uppercase; margin-top:2px;}
+.toc-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px;}
+.toc-list a{
+  display:flex; gap:10px; align-items:baseline; text-decoration:none; color:var(--text-muted);
+  padding:6px 8px; border-radius:6px; font-size:13.2px; border-left:2px solid transparent;
+}
+.toc-list a .n{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); flex:none; width:16px;}
+.toc-list a:hover{background:var(--surface-2); color:var(--text);}
+.toc-list a.active{background:var(--accent-soft); color:var(--accent-strong); border-left-color:var(--accent); font-weight:600;}
+.toc-legend{margin-top:20px; padding-top:16px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-faint); display:flex; flex-direction:column; gap:6px;}
+
+/* ---------- Main content ---------- */
+.content{padding:0; min-width:0;}
+.hero{
+  padding:52px clamp(20px,5vw,64px) 40px; border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, var(--accent-soft), var(--bg) 140%);
+}
+.hero .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-strong); margin-bottom:10px;}
+.hero h1{font-size:clamp(28px,3.6vw,40px); margin:0 0 12px;}
+.hero p.lead{font-size:16.5px; color:var(--text-muted); max-width:62ch; margin:0 0 20px;}
+.hero .meta{display:flex; flex-wrap:wrap; gap:10px 22px; font-size:13px; color:var(--text-muted);}
+.hero .meta b{color:var(--text); font-weight:600;}
+
+section.doc{padding:44px clamp(20px,5vw,64px); border-bottom:1px solid var(--border);}
+section.doc:last-of-type{border-bottom:none;}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px;}
+.sec-head .num{font-family:var(--font-mono); font-size:14px; color:var(--accent); font-weight:600;}
+.sec-head h2{font-size:24px; margin:0;}
+.sec-sub{color:var(--text-muted); margin:0 0 26px; max-width:68ch;}
+h3{font-size:18px; margin:34px 0 10px;}
+h3:first-child{margin-top:0;}
+h4{font-size:14.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted); margin:22px 0 10px;}
+
+/* badges */
+.badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; padding:2px 8px; border-radius:99px; border:1px solid transparent;}
+.badge-mvp{background:var(--ok-soft); color:var(--ok); border-color:color-mix(in srgb, var(--ok) 30%, transparent);}
+.badge-ent{background:var(--accent-soft); color:var(--accent-strong); border-color:color-mix(in srgb, var(--accent) 30%, transparent);}
+.badge-fe{background:var(--warm-soft); color:var(--warm);}
+.badge-be{background:var(--surface-3); color:var(--text-muted);}
+
+/* callouts */
+.callout{border:1px solid var(--border); border-left-width:4px; border-radius:8px; padding:14px 16px; margin:16px 0; background:var(--surface); display:flex; gap:12px; box-shadow:var(--shadow);}
+.callout .ico{font-family:var(--font-mono); font-weight:700; font-size:12px; flex:none; width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center;}
+.callout .body{font-size:14px; color:var(--text-muted);}
+.callout .body b{color:var(--text);}
+.callout-insight{border-left-color:var(--accent);}
+.callout-insight .ico{background:var(--accent-soft); color:var(--accent-strong);}
+.callout-decision{border-left-color:var(--warm);}
+.callout-decision .ico{background:var(--warm-soft); color:var(--warm);}
+.callout-warn{border-left-color:var(--danger);}
+.callout-warn .ico{background:var(--danger-soft); color:var(--danger);}
+
+/* tables */
+.table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:10px; margin:14px 0;}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px;}
+th{text-align:left; background:var(--surface-2); color:var(--text-muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap;}
+td{padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td code, th code{font-size:12.3px;}
+.num-col{font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right;}
+
+/* code blocks */
+pre.code, pre.mermaid-wrap{
+  background:var(--code-bg); color:var(--code-text); border:1px solid var(--code-border);
+  border-radius:10px; padding:16px 18px; overflow-x:auto; font-size:12.6px; line-height:1.6; margin:14px 0;
+}
+pre.code code{color:inherit;}
+.filechip{display:inline-block; font-family:var(--font-mono); font-size:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:1px 7px; color:var(--accent-strong);}
+code.inline{background:var(--surface-2); border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-size:12.8px;}
+
+/* diagrams */
+.diagram-frame{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin:16px 0; box-shadow:var(--shadow); overflow-x:auto;}
+figure{margin:0;}
+figcaption{font-size:12.8px; color:var(--text-faint); margin-top:10px; text-align:center;}
+pre.mermaid{background:transparent; border:none; margin:0; text-align:center;}
+
+/* steps / HU cards */
+.hu-card{border:1px solid var(--border); border-radius:12px; background:var(--surface); margin:20px 0; box-shadow:var(--shadow); overflow:hidden;}
+.hu-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 20px; background:var(--surface-2); border-bottom:1px solid var(--border); flex-wrap:wrap;}
+.hu-head h3{margin:0; font-size:16px;}
+.hu-body{padding:18px 20px;}
+.hu-story{font-style:normal; color:var(--text-muted); border-left:3px solid var(--accent); padding:8px 14px; margin:0 0 16px; background:var(--accent-soft); border-radius:0 6px 6px 0; font-size:13.6px;}
+.track{margin-top:16px;}
+.track-title{display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; margin-bottom:10px; color:var(--text);}
+ol.steps{list-style:none; margin:0; padding:0; counter-reset:step;}
+ol.steps > li{counter-increment:step; position:relative; padding:0 0 12px 34px; margin-bottom:2px; font-size:13.8px;}
+ol.steps > li::before{content:counter(step); position:absolute; left:0; top:0; width:22px; height:22px; border-radius:50%; background:var(--surface-3); color:var(--text); font-family:var(--font-mono); font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center;}
+ol.steps > li:not(:last-child)::after{content:""; position:absolute; left:11px; top:22px; bottom:-2px; width:1px; background:var(--border);}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:760px){.grid-2{grid-template-columns:1fr;}}
+
+.tag-row{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0;}
+
+.formula-box{font-family:var(--font-mono); font-size:13px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin:10px 0; overflow-x:auto;}
+
+.chk-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px;}
+.chk-list li{display:flex; gap:10px; align-items:flex-start; font-size:14px;}
+.chk-list li::before{content:"✓"; font-family:var(--font-mono); color:var(--ok); font-weight:700; flex:none; margin-top:1px;}
+
+footer.doc-footer{padding:32px clamp(20px,5vw,64px) 60px; color:var(--text-faint); font-size:12.5px;}
+
+@media print{ .toc{display:none;} .layout{grid-template-columns:1fr;} }
+</style>
+
+<div class="layout">
+  <nav class="toc" id="tocNav" aria-label="Tabla de contenido">
+    <div class="toc-brand">
+      <div class="mark">SD</div>
+      <div class="name">Descuentos Acumulativos<small>Software Design Document</small></div>
+    </div>
+    <ul class="toc-list">
+      <li><a href="#s1"><span class="n">01</span>Resumen y alcance</a></li>
+      <li><a href="#s2"><span class="n">02</span>Historias de usuario</a></li>
+      <li><a href="#s3"><span class="n">03</span>Arquitectura y patrones</a></li>
+      <li><a href="#s4"><span class="n">04</span>Motor de descuentos</a></li>
+      <li><a href="#s5"><span class="n">05</span>Secuencia del checkout</a></li>
+      <li><a href="#s6"><span class="n">06</span>Datos, ER y auditoría</a></li>
+      <li><a href="#s7"><span class="n">07</span>Contrato de API</a></li>
+      <li><a href="#s8"><span class="n">08</span>Seguridad e IAM</a></li>
+      <li><a href="#s9"><span class="n">09</span>Eventos, Saga y Outbox</a></li>
+      <li><a href="#s10"><span class="n">10</span>Resiliencia</a></li>
+      <li><a href="#s11"><span class="n">11</span>Despliegue en GCP</a></li>
+      <li><a href="#s12"><span class="n">12</span>Pruebas y cobertura</a></li>
+      <li><a href="#s13"><span class="n">13</span>Gobernanza de IA</a></li>
+      <li><a href="#s14"><span class="n">14</span>Estructura del repo</a></li>
+      <li><a href="#s15"><span class="n">15</span>Checklist final</a></li>
+    </ul>
+    <div class="toc-legend">
+      <div><span class="badge badge-mvp">MVP</span> se construye y se demuestra en los 20 min</div>
+      <div><span class="badge badge-ent">Enterprise</span> arquitectura objetivo documentada, defendible en sustentación</div>
+    </div>
+  </nav>
+
+  <main class="content">
+    <header class="hero">
+      <div class="eyebrow">SDD · v1.0 · 2026-09-08</div>
+      <h1>Core E-Commerce Checkout con Descuentos Acumulativos</h1>
+      <p class="lead">Documento de diseño de software para la prueba técnica "Core E-Commerce con Sistema de Descuentos Acumulativos". Cubre historias de usuario ejecutables, arquitectura y patrones de diseño, motor de descuentos, modelo de datos, contrato de API, seguridad/IAM, mensajería y saga, resiliencia, despliegue en GCP/Kubernetes, y estrategia de pruebas — con el nivel de detalle necesario para que un desarrollador implemente sin ambigüedad tanto el backend como el frontend.</p>
+      <div class="meta">
+        <span><b>Frontend</b> React + TypeScript + Shadcn/ui + SCSS</span>
+        <span><b>Backend</b> NestJS + TypeScript + Prisma + PostgreSQL</span>
+        <span><b>Infra</b> GCP · GKE · Supabase (DB + Auth) · Redis · SSE</span>
+      </div>
+    </header>
+
+    <!-- ================= SECTION 1 ================= -->
+    <section class="doc" id="s1">
+      <div class="sec-head"><span class="num">01</span><h2>Resumen y alcance</h2></div>
+      <p class="sec-sub">Cómo se concilia el MVP de 20 minutos exigido por la prueba con el stack "enterprise" solicitado, sin sacrificar ninguno de los dos.</p>
+
+      <p>El enunciado pide un MVP demostrable en una sustentación de 20 minutos. El brief de arquitectura solicitado añade, además, un conjunto de piezas propias de un sistema en producción a escala (Kubernetes, mensajería asíncrona, Saga, Event Sourcing, IAM, cifrado de payloads, Redis como pool de conexión). Construir literalmente <em>todo</em> eso como código funcional dentro del tiempo de la prueba es poco realista y, peor, iría en contra del criterio explícito de evaluación: <em>"evalúa el criterio de ingeniería del desarrollador sobre la cantidad de código"</em>.</p>
+
+      <div class="callout callout-decision">
+        <div class="ico">D</div>
+        <div class="body"><b>Decisión de arquitectura:</b> este SDD se organiza en dos niveles explícitos. El <b>Nivel MVP</b> es el que se codifica, se prueba con cobertura ≥80% y se demuestra en vivo. El <b>Nivel Enterprise</b> es la arquitectura objetivo a la que ese MVP evoluciona sin reescrituras — documentada, con contratos e interfaces ya preparados en el código del MVP, pero cuya infraestructura pesada (K8s, IAM completo) no se levanta para la demo. Esto es exactamente lo que <span class="filechip">docs/arquitectura.md</span> pide justificar como trade-off de "simplicidad vs. extensibilidad".</div>
+      </div>
+
+      <h3>Stack fijado</h3>
+      <p><b>Frontend:</b> React + TypeScript + Shadcn/ui + SCSS. <b>Backend:</b> NestJS + TypeScript + Prisma + PostgreSQL (Supabase). Esta decisión ya no se trata como una opción entre varias (el enunciado permitía elegir libremente) — queda cerrada para todo el resto del documento.</p>
+
+      <h3>Descomposición en microservicios</h3>
+      <p>El backend no es un monolito modular: cada dominio es un <b>servicio NestJS independiente</b> — su propio <code class="inline">main.ts</code>, su propio puerto, su propio Dockerfile, desplegable por separado. Un <b>API Gateway</b> es el único punto público; el resto solo se habla entre sí por red interna (docker-compose en local, ClusterIP dentro de GKE en producción).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Servicio</th><th>Dueño de</th><th>Expone</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">api-gateway</code></td><td>Enrutamiento público, verificación de JWT (Supabase), stream SSE al navegador</td><td>Toda la API pública <code class="inline">/api/v1/*</code></td></tr>
+            <tr><td><code class="inline">catalog-service</code></td><td>Tablas <code class="inline">products</code>, <code class="inline">categories</code></td><td>Catálogo (HU1), CRUD admin (HU6), reserva/liberación de stock (interno)</td></tr>
+            <tr><td><code class="inline">coupon-service</code></td><td>Tabla <code class="inline">coupons</code></td><td>Cupones disponibles y CRUD admin (HU7), resolución de cupón por código (interno)</td></tr>
+            <tr><td><code class="inline">discount-service</code></td><td>Nada — sin estado, sin base de datos</td><td>Cálculo de la cascada + tope del 35% (interno)</td></tr>
+            <tr><td><code class="inline">order-service</code></td><td>Tablas <code class="inline">orders</code>, <code class="inline">order_items</code>, <code class="inline">outbox_events</code></td><td>Checkout (HU3) — orquesta la saga, publica eventos</td></tr>
+            <tr><td><code class="inline">notification-service</code></td><td>Nada — solo reacciona a eventos</td><td>Consume <code class="inline">order.events</code>, dispara confirmación (stub en MVP)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>Esto invalida un supuesto de la primera versión de este SDD:</b> con módulos dentro de un mismo proceso, el checkout completo cabía en una sola transacción SQL y "no había nada distribuido que orquestar". Con servicios separados eso deja de ser cierto — reservar stock, resolver el cupón y calcular el descuento son ahora <b>llamadas de red independientes</b>, y un paso puede fallar después de que otro ya tuvo efecto. La saga de §09 se reescribe sobre esta base: deja de ser "documentada para el futuro" y pasa a ser parte del MVP.</div>
+      </div>
+
+      <h3>Decisiones de stack ajustadas durante el diseño</h3>
+      <p>Durante el diseño se revisaron cuatro piezas de la lista inicial de requisitos y se reemplazaron por una alternativa más coherente con seis microservicios pequeños compartiendo una sola instancia de base de datos gestionada (§01 "Descomposición en microservicios"). Esta tabla es, literalmente, el contenido que va en la sección de trade-offs de <span class="filechip">docs/arquitectura.md</span>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Punto de partida</th><th>Decisión final</th><th>Razón</th></tr></thead>
+          <tbody>
+            <tr><td>Firebase Authentication</td><td><b>Supabase Auth</b></td><td>Supabase ya es el proveedor de Postgres (pedido para la semilla). Consolidar identidad y datos en un solo proveedor evita mantener dos SDKs de administración y dos conjuntos de credenciales, sin perder login por email/password ni gestión de usuarios.</td></tr>
+            <tr><td>JWE como token de sesión completo</td><td><b>JWT firmado (JWS)</b> emitido por Supabase y verificado vía JWKS; <b>JWE se reubica</b> para cifrar específicamente el bloque de datos de entrega del comprador invitado (§08)</td><td>El JWT de sesión viaja por HTTPS y solo lleva claims de autorización (rol, id) — cifrarlo entero no protegía nada que la firma no protegiera ya. El cifrado sí aporta donde hay un dato sensible en reposo: nombre/email/teléfono/dirección de un checkout sin cuenta.</td></tr>
+            <tr><td>Liquibase + Prisma (dos herramientas)</td><td><b>Prisma Migrate</b> + script <code class="inline">seed.ts</code></td><td>Para un backend único y un solo desarrollador, dos sistemas de migración es complejidad sin retorno. Se documenta como el punto donde se introduciría Liquibase si el proyecto creciera a un equipo de datos independiente del equipo de aplicación.</td></tr>
+            <tr><td>RabbitMQ / CloudAMQP</td><td><b>Redis Pub/Sub</b> (ya presente para pool/cache) + Outbox transaccional + endpoint <b>SSE</b> para push en tiempo real al navegador</td><td>Con 6 microservicios sí hay comunicación real entre procesos que resolver, pero un broker dedicado con colas durables y DLQ es infraestructura adicional para un volumen de eventos que hoy es mínimo (una orden confirmada, un consumidor). Reutilizar Redis evita sumar una tercera pieza de infraestructura. El publicador respeta la interfaz <code class="inline">EventPublisher</code> (Adapter), así que introducir RabbitMQ el día que se necesite entrega garantizada es una implementación nueva, no una reescritura.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capacidad</th><th>Nivel MVP (se ejecuta en la demo)</th><th>Nivel Enterprise (diseñado y documentado)</th></tr></thead>
+          <tbody>
+            <tr><td>Persistencia</td><td>PostgreSQL vía Supabase (mismo proveedor en local y producción)</td><td>Cloud SQL como réplica de respaldo / alta disponibilidad multi-región</td></tr>
+            <tr><td>ORM / migraciones</td><td>Prisma Client + <code class="inline">prisma migrate dev</code> + <code class="inline">seed.ts</code></td><td>Mismo esquema, <code class="inline">prisma migrate deploy</code> ejecutado como paso de CI antes del despliegue</td></tr>
+            <tr><td>Identidad</td><td>Supabase Auth (email/password) + checkout como invitado sin cuenta (HU5)</td><td>Supabase Auth + proveedores sociales + políticas RLS por rol en cada tabla</td></tr>
+            <tr><td>Mensajería entre servicios</td><td>Redis Pub/Sub (<code class="inline">@nestjs/microservices</code>, <code class="inline">Transport.REDIS</code>) + stream SSE del gateway hacia el navegador</td><td>RabbitMQ cuando se necesite entrega garantizada / múltiples consumidores durables (Redis Pub/Sub es at-most-once)</td></tr>
+            <tr><td>Consistencia entre servicios</td><td>Saga por <b>orquestación</b> en <code class="inline">order-service</code>: llamadas síncronas a catalog/coupon/discount-service, con compensación explícita (liberar stock) si la persistencia final falla</td><td>Mismo patrón + reintentos/circuit breaker por servicio, y Saga por <b>coreografía</b> vía RabbitMQ para el tramo asíncrono el día que se sume una pasarela de pago externa</td></tr>
+            <tr><td>Pool de conexión DB</td><td>Pool nativo de Prisma/pg</td><td>Redis como semáforo de conexiones activas + cache de catálogo, complementando (no reemplazando) PgBouncer</td></tr>
+            <tr><td>Despliegue</td><td><code class="inline">docker compose up</code> local</td><td>GKE (GCP) con Ingress, HPA, Secret Manager, Cloud Build CI/CD</td></tr>
+            <tr><td>Resiliencia</td><td>Manejo de errores con excepciones tipadas + reintentos simples</td><td>Circuit breaker (opossum) en integraciones externas, colas de reintento con backoff</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Todas las piezas de la columna "Enterprise" están <b>diseñadas a nivel de interfaz</b> en el código del MVP (por ejemplo, el publicador de eventos implementa una interfaz <code class="inline">EventPublisher</code> cuya implementación MVP es un <code class="inline">RedisPubSubPublisher</code> — que también alimenta el stream SSE del gateway — y cuya implementación enterprise es <code class="inline">RabbitMqEventPublisher</code>), de modo que en la sustentación se puede mostrar el código, explicar por qué no se levantó infraestructura pesada para una demo de 20 minutos, y defender la decisión con seguridad.</p>
+    </section>
+
+    <!-- ================= SECTION 2 ================= -->
+    <section class="doc" id="s2">
+      <div class="sec-head"><span class="num">02</span><h2>Historias de usuario — plan de implementación</h2></div>
+      <p class="sec-sub">Cada HU del enunciado, descompuesta en tareas concretas de backend y frontend, en el orden en que un desarrollador ("coder") debe ejecutarlas.</p>
+
+      <div class="callout callout-insight">
+        <div class="ico">i</div>
+        <div class="body"><b>Orden de construcción recomendado:</b> HU3 (motor + API) antes que HU1/HU2 (UI), porque el frontend consume el contrato que define el backend. Implementar el motor de descuentos primero, con sus pruebas unitarias, congela el contrato <code class="inline">CheckoutResponseDto</code> que todo lo demás depende.</div>
+      </div>
+
+      <!-- HU3 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 3 · Procesamiento consistente de la orden</h3><span class="badge badge-be">Backend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como API REST, recibo el carrito y el cupón, valido stock, recalculo el motor de descuentos con precedencias y tope del 35%, decremento stock, persisto la orden y devuelvo los totales desglosados.</p>
+          <div class="track">
+            <div class="track-title">Tareas</div>
+            <ol class="steps">
+              <li>Inicializar <span class="filechip">apps/backend/services/</span> con seis proyectos NestJS independientes (<code class="inline">api-gateway</code>, <code class="inline">catalog-service</code>, <code class="inline">coupon-service</code>, <code class="inline">discount-service</code>, <code class="inline">order-service</code>, <code class="inline">notification-service</code>), TypeScript estricto en todos (<code class="inline">"strict": true</code>, sin <code class="inline">any</code> implícito).</li>
+              <li>En <code class="inline">catalog-service</code>, <code class="inline">coupon-service</code> y <code class="inline">order-service</code>: cada uno con su propio <span class="filechip">prisma/schema.prisma</span> apuntando a su propio <i>schema</i> de Postgres dentro de la misma instancia de Supabase (ver §06) y corriendo <code class="inline">prisma migrate dev --name init</code> por separado.</li>
+              <li>Sembrar productos y cupones de prueba con <code class="inline">prisma db seed</code> en <code class="inline">catalog-service</code> y <code class="inline">coupon-service</code> (ver §06 "Semilla de datos") para tener catálogo real desde el primer arranque.</li>
+              <li>En <code class="inline">discount-service</code>, crear <span class="filechip">src/strategies/discount-strategy.interface.ts</span> con el contrato <code class="inline">DiscountStrategy</code> (ver §04). Este servicio no tiene base de datos.</li>
+              <li>Implementar las 3 estrategias concretas: <code class="inline">CategoryDiscountStrategy</code>, <code class="inline">VolumeDiscountStrategy</code>, <code class="inline">CouponDiscountStrategy</code>, cada una en su propio archivo bajo <span class="filechip">src/strategies/</span> de <code class="inline">discount-service</code>.</li>
+              <li>Implementar <code class="inline">DiscountStrategyFactory.buildPipeline()</code> en <span class="filechip">src/factories/discount-strategy.factory.ts</span>: devuelve el arreglo ordenado de estrategias (orden fijo = orden de precedencia del negocio).</li>
+              <li>Implementar <code class="inline">DiscountEngineService.calculate()</code>: recorre el pipeline, acumula resultados, aplica el tope del 35% al final (método <code class="inline">applyAbsoluteCap</code>, puro y testeable en aislamiento). Exponer como <code class="inline">POST /internal/discounts/calculate</code>.</li>
+              <li><b>Escribir primero las pruebas unitarias del motor</b> (ver §12) antes de conectar cualquier controlador — el motor no debe depender de Nest, Prisma ni HTTP en absoluto.</li>
+              <li>En <code class="inline">catalog-service</code>, implementar <code class="inline">StockService.reserveStock(items)</code>: valida <code class="inline">stock &gt;= quantity</code> por producto dentro de una transacción Prisma, lanza <code class="inline">InsufficientStockException</code> (HTTP 409) si falla cualquier línea. Exponer <code class="inline">POST /internal/stock/reserve</code> y <code class="inline">POST /internal/stock/release</code> (compensación, ver §09).</li>
+              <li>En <code class="inline">order-service</code>, implementar <code class="inline">OrdersRepository</code> — único punto que conoce Prisma en ese servicio; <code class="inline">OrdersService</code> nunca importa el cliente Prisma directamente (aislamiento persistencia/lógica, ver §03).</li>
+              <li>En <code class="inline">order-service</code>, implementar <code class="inline">CheckoutSaga.run(dto)</code>: llama a <code class="inline">catalog-service</code> (reservar), <code class="inline">coupon-service</code> (resolver), <code class="inline">discount-service</code> (calcular), persiste orden + items + fila outbox en su propia transacción, y compensa (libera stock) si la persistencia falla (ver §09).</li>
+              <li>En <code class="inline">api-gateway</code>, exponer <code class="inline">POST /api/v1/checkout</code> que reenvía a <code class="inline">order-service</code>, con <code class="inline">CreateCheckoutDto</code> validado por <code class="inline">class-validator</code> (rechaza carritos vacíos o con <code class="inline">quantity &lt;= 0</code> con 400).</li>
+              <li>Decorar los controladores con <code class="inline">@ApiTags</code>/<code class="inline">@ApiResponse</code> de <code class="inline">@nestjs/swagger</code> en cada servicio; <code class="inline">api-gateway</code> agrega los esquemas en <code class="inline">/api/docs</code> (ver §07).</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- HU1 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 1 · Gestión del carrito</h3><span class="badge badge-fe">Frontend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como cliente, veo el catálogo (id, nombre, precio, categoría, stock) y agrego/quito productos del carrito con el subtotal actualizándose de inmediato.</p>
+          <div class="track">
+            <div class="track-title">Tareas</div>
+            <ol class="steps">
+              <li>Inicializar <span class="filechip">apps/frontend</span> con Vite + React + TypeScript estricto.</li>
+              <li>Instalar Shadcn/ui (<code class="inline">npx shadcn@latest init</code>) y generar los componentes base: <code class="inline">button</code>, <code class="inline">card</code>, <code class="inline">badge</code>, <code class="inline">input</code>, <code class="inline">separator</code>, <code class="inline">toast</code>/<code class="inline">sonner</code>, <code class="inline">alert-dialog</code>.</li>
+              <li>Configurar SCSS junto a Tailwind (el motor de utilidades de Shadcn): carpeta <span class="filechip">src/styles/</span> con <code class="inline">_tokens.scss</code> (colores/espaciados propios de marca) y módulos <code class="inline">*.module.scss</code> para componentes con layout propio (carrito, desglose, alerta) — Tailwind resuelve utilidades atómicas, SCSS resuelve composición visual específica del dominio. Documentar este híbrido como decisión en <span class="filechip">docs/arquitectura.md</span>.</li>
+              <li>Crear el store del carrito en <span class="filechip">src/state/cart.store.ts</span> con Zustand (patrón <b>Observer</b>: cada componente se suscribe solo a la porción de estado que necesita).</li>
+              <li>Definir el tipo <code class="inline">Product</code> y <code class="inline">CartLine</code> en <span class="filechip">packages/shared-contracts</span> (o <span class="filechip">src/types</span> si no se usa el paquete compartido) — mismos campos que el DTO del backend, sin duplicar significados.</li>
+              <li>Implementar <code class="inline">ProductList</code> + <code class="inline">ProductCard</code> (Shadcn <code class="inline">Card</code>) mostrando id, nombre, precio, categoría (badge) y stock restante; botón "Agregar" deshabilitado si <code class="inline">stock === 0</code>.</li>
+              <li>Implementar <code class="inline">CartPanel</code>/<code class="inline">CartItemRow</code> con controles +/− por línea; el subtotal se deriva de un selector memoizado <code class="inline">selectSubtotal(state)</code>, nunca de un cálculo disperso en el JSX.</li>
+              <li>Cablear la API de productos: <span class="filechip">src/api/products.api.ts</span> con <code class="inline">fetch</code> tipado hacia <code class="inline">GET /api/v1/products</code>.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- HU2 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 2 · Cupón y desglose de descuentos</h3><span class="badge badge-fe">Frontend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como cliente, ingreso un cupón, presiono "Aplicar" y veo el desglose (categoría, volumen, cupón), el % efectivo, el ahorro total y el valor final.</p>
+          <div class="track">
+            <div class="track-title">Tareas</div>
+            <ol class="steps">
+              <li>Exponer <code class="inline">POST /api/v1/checkout/preview</code> en <code class="inline">api-gateway</code>, que llama directo a <code class="inline">coupon-service</code> (resolver) y <code class="inline">discount-service</code> (calcular) — <b>sin pasar por <code class="inline">order-service</code></b>, porque no hay nada que persistir ni stock que reservar (idempotente, seguro de llamar en cada tecleo). Cero duplicación de reglas de negocio: es el mismo <code class="inline">discount-service</code> que usa HU3.</li>
+              <li>Frontend: <code class="inline">CouponForm</code> con <code class="inline">Input</code> + botón "Aplicar" (Shadcn); al enviar, llama <code class="inline">useCheckoutPreview()</code> (hook en <span class="filechip">src/state/useCheckoutPreview.ts</span>) que hace <code class="inline">debounce</code> de 300ms y dispara la petición de preview con el carrito actual + código.</li>
+              <li>Implementar <code class="inline">DiscountBreakdown.tsx</code> mostrando cada línea (Categoría, Volumen, Cupón) con su monto, más "Ahorro total", "% de descuento efectivo" y "Total a pagar" — estilo propio en <code class="inline">DiscountBreakdown.module.scss</code>.</li>
+              <li>Si el cupón no existe, está vencido o aún no es vigente, el preview responde <code class="inline">coupon:{applied:false, reason:'INVALID_COUPON'|'EXPIRED_COUPON'|'NOT_YET_VALID'}</code> (no es un error HTTP, es un resultado de negocio) — el formulario muestra el motivo sin bloquear el resto del cálculo.</li>
+              <li>Al confirmar la compra, reusar el mismo payload contra <code class="inline">POST /api/v1/checkout</code> (HU3) para persistir.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- HU4 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 4 · Alerta de descuento límite alcanzado</h3><span class="badge badge-fe">Frontend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Si la combinación de productos y cupón supera el 35%, veo una notificación persistente y distintiva.</p>
+          <div class="callout callout-insight" style="margin-top:0">
+            <div class="ico">i</div>
+            <div class="body"><b>Hallazgo de ingeniería a defender en sustentación:</b> con exactamente las 3 reglas obligatorias del enunciado (10% × 5% × 15% en cascada), el descuento combinado máximo matemáticamente posible es <b>1 − (0.90 × 0.95 × 0.85) = 27.325%</b>, sin importar la composición del carrito — el tope del 35% nunca se activa con solo <code class="inline">WELCOME2026</code>. Pero en cuanto HU7 permite cupones de categoría con porcentaje configurable (ej. <code class="inline">TECH30</code>), el tope <em>sí</em> se vuelve alcanzable con datos legítimos — ver el ejemplo 2 de §04. El guard se prueba <b>en aislamiento</b> (inyectando resultados sintéticos al método <code class="inline">applyAbsoluteCap</code>) precisamente para no depender de armar a mano el carrito exacto que lo dispare. Ver §04 y §12.</div>
+          </div>
+          <div class="track">
+            <div class="track-title">Tareas</div>
+            <ol class="steps">
+              <li>El backend siempre retorna <code class="inline">cappedAt35: boolean</code> en la respuesta del preview/checkout, calculado por <code class="inline">applyAbsoluteCap</code>.</li>
+              <li>Frontend: componente <code class="inline">DiscountCapAlert.tsx</code> — banner persistente (no un toast que desaparece) usando Shadcn <code class="inline">Alert</code> variante destructiva/warning + estilo distintivo propio en SCSS (fondo con textura de "borde de precaución" o franja de color acentuado), texto exacto: <em>"¡Enhorabuena! Has alcanzado el límite máximo de ahorro permitido (35%)."</em></li>
+              <li>El banner se muestra/oculta reactivamente según <code class="inline">breakdown.cappedAt35</code> proveniente del preview — no hay estado local duplicado.</li>
+              <li>Prueba de render: dado un breakdown mockeado con <code class="inline">cappedAt35: true</code>, el banner debe estar presente en el DOM con el texto exacto (edge case explícito del enunciado, ver §12).</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-insight">
+        <div class="ico">i</div>
+        <div class="body"><b>HU 5, 6 y 7 son adicionales</b> — van más allá del mínimo exigido por el enunciado (que solo pide HU1–HU4). Se incluyen porque el equipo pidió explícitamente login, checkout de invitado, administración de inventario y gestión de cupones. Presentarlas como "valor agregado" en la sustentación, dejando claro que HU1–HU4 son las que la rúbrica evalúa de forma obligatoria.</div>
+      </div>
+
+      <!-- HU5 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 5 · Autenticación y datos de entrega <span class="badge badge-mvp" style="margin-left:6px">Adicional</span></h3><span class="badge badge-be">Backend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como cliente, quiero poder iniciar sesión para comprar; si no tengo cuenta, quiero que se me pidan mis datos de entrega antes de confirmar la compra.</p>
+          <div class="track">
+            <div class="track-title">Tareas — Backend</div>
+            <ol class="steps">
+              <li>Habilitar Supabase Auth en el proyecto (email/password); no se implementa un endpoint propio de login — el frontend habla directo con Supabase (ver §08).</li>
+              <li>Middleware/guard <code class="inline">SupabaseAuthGuard</code> en <span class="filechip">common/guards/supabase-auth.guard.ts</span>: si llega <code class="inline">Authorization: Bearer</code>, verifica la firma contra el JWKS de Supabase y adjunta <code class="inline">req.user</code>; si no llega, deja pasar la request como invitado (no la rechaza) — es un guard <i>opcional</i>, distinto de uno que exige sesión.</li>
+              <li>Extender <code class="inline">CheckoutRequestDto</code> con <code class="inline">guestInfo?: { fullName, email, phone, address }</code> (ver §07).</li>
+              <li>En <code class="inline">OrdersService.checkout()</code>: si <code class="inline">req.user</code> existe, usar <code class="inline">user.id</code>; si no, validar que <code class="inline">guestInfo</code> venga completo (400 si falta un campo) y cifrarlo con JWE antes de guardarlo en <code class="inline">orders.guest_info_enc</code> (ver §08 — este es el uso concreto de JWE en el proyecto).</li>
+              <li>Endpoint <code class="inline">PATCH /api/v1/users/me/profile</code> (Customer) para que un usuario logueado guarde una dirección de entrega por defecto y no tenga que reescribirla en cada compra.</li>
+            </ol>
+          </div>
+          <div class="track">
+            <div class="track-title">Tareas — Frontend</div>
+            <ol class="steps">
+              <li><code class="inline">LoginForm</code>/<code class="inline">RegisterForm</code> (Shadcn <code class="inline">Form</code> + <code class="inline">Input</code>) usando el SDK cliente <code class="inline">@supabase/supabase-js</code> (<code class="inline">signInWithPassword</code>, <code class="inline">signUp</code>).</li>
+              <li><code class="inline">authStore.ts</code> (Zustand, patrón Observer) guarda la sesión de Supabase y expone <code class="inline">isAuthenticated</code>/<code class="inline">roles</code> al resto de la app.</li>
+              <li>En el checkout: si <code class="inline">authStore.user</code> es <code class="inline">null</code>, mostrar botón "Continuar como invitado" que revela <code class="inline">GuestCheckoutForm.tsx</code> (nombre, email, teléfono, dirección) — todos obligatorios para habilitar "Confirmar compra".</li>
+              <li>Si hay sesión activa, precargar los campos de entrega desde el perfil guardado, editable antes de confirmar.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- HU6 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 6 · Administración de inventario <span class="badge badge-mvp" style="margin-left:6px">Adicional</span></h3><span class="badge badge-be">Backend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como administrador, quiero crear productos manualmente y ajustar su stock, para gestionar el catálogo sin tocar la base de datos directamente.</p>
+          <div class="track">
+            <div class="track-title">Tareas — Backend</div>
+            <ol class="steps">
+              <li><code class="inline">RolesGuard(['ADMIN'])</code> se verifica en <code class="inline">api-gateway</code> (lee <code class="inline">req.user.roles</code> resuelto por <code class="inline">SupabaseAuthGuard</code>) antes de reenviar la request a <code class="inline">catalog-service</code>.</li>
+              <li>En <code class="inline">catalog-service</code>: <code class="inline">POST /admin/products</code> — crea producto (sku, nombre, precio, categoría, stock inicial), validado con <code class="inline">class-validator</code>. El gateway lo expone como <code class="inline">POST /api/v1/products</code>.</li>
+              <li><code class="inline">PATCH /admin/products/:id</code> — edita nombre/precio/categoría (no toca stock).</li>
+              <li><code class="inline">PATCH /admin/products/:id/stock</code> — ajuste atómico <code class="inline">{ delta: number }</code> con <code class="inline">UPDATE products SET stock = stock + $delta WHERE id = $id AND stock + $delta >= 0</code>, para no pisar una compra concurrente (mismo cuidado que <code class="inline">reserveStock</code>, que vive en este mismo servicio).</li>
+              <li><code class="inline">DELETE /admin/products/:id</code> — <i>soft delete</i> (<code class="inline">active = false</code>): nunca borrar físicamente un producto ya referenciado por <code class="inline">order_items</code> históricos en <code class="inline">order-service</code>.</li>
+            </ol>
+          </div>
+          <div class="track">
+            <div class="track-title">Tareas — Frontend</div>
+            <ol class="steps">
+              <li>Ruta protegida <span class="filechip">/admin/inventario</span>: si <code class="inline">authStore.roles</code> no incluye <code class="inline">ADMIN</code>, redirige a inicio.</li>
+              <li><code class="inline">ProductsTable.tsx</code> (Shadcn <code class="inline">Table</code>/<code class="inline">DataTable</code>) con ajuste de stock inline (+/−) que llama al endpoint de stock.</li>
+              <li><code class="inline">ProductFormDialog.tsx</code> (Shadcn <code class="inline">Dialog</code> + <code class="inline">Form</code>) para crear/editar producto, con <code class="inline">Select</code> de categoría.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- HU7 -->
+      <div class="hu-card">
+        <div class="hu-head"><h3>HU 7 · Catálogo y administración de cupones <span class="badge badge-mvp" style="margin-left:6px">Adicional</span></h3><span class="badge badge-be">Backend</span></div>
+        <div class="hu-body">
+          <p class="hu-story">Como administrador, quiero crear cupones nuevos, globales o por categoría (ej. Tecnología, Juguetería). Como cliente, quiero ver los cupones disponibles y aplicarlos con un clic, sin tener que adivinar el código.</p>
+          <div class="callout callout-decision" style="margin-top:0">
+            <div class="ico">D</div>
+            <div class="body"><b>Extensión del motor de descuentos:</b> <code class="inline">WELCOME2026</code> sigue siendo obligatorio y fijo (15%, alcance global). Los cupones que cree el administrador añaden un segundo tipo: alcance <b>por categoría</b> (ej. <code class="inline">TECH30</code> → 30% solo en líneas de Tecnología, <code class="inline">JUGUETES10</code> → 10% solo en Juguetería). Ver §04 "Actualización: cupones por categoría" para el cambio de diseño que esto exige en <code class="inline">CouponDiscountStrategy</code> — y para un ejemplo donde, con un cupón así, <b>el tope del 35% sí se activa con datos reales</b>.</div>
+          </div>
+          <div class="track">
+            <div class="track-title">Tareas — Backend</div>
+            <ol class="steps">
+              <li>En <code class="inline">coupon-service</code>, extender el modelo <code class="inline">Coupon</code>: <code class="inline">scope: 'GLOBAL' | 'CATEGORY'</code>, <code class="inline">categoryId?</code> (referencia liviana, sin FK entre schemas, a la categoría que vive en <code class="inline">catalog-service</code>), <code class="inline">label</code>.</li>
+              <li><code class="inline">GET /available</code> (pública vía gateway como <code class="inline">/api/v1/coupons/available</code>) — solo cupones <code class="inline">active=true</code> y vigentes, exponiendo únicamente <code class="inline">code, label, scope, categoryName, discountPercent</code>. Nunca listar cupones inactivos/expirados.</li>
+              <li><code class="inline">POST /admin/coupons</code> y <code class="inline">PATCH /admin/coupons/:id</code> (ADMIN, vía gateway).</li>
+              <li><code class="inline">coupon-service</code> expone <code class="inline">POST /internal/coupons/resolve</code>; <code class="inline">order-service</code> lo llama y pasa el resultado a <code class="inline">discount-service</code>, que ramifica <code class="inline">CouponDiscountStrategy.apply()</code> según <code class="inline">scope</code> (detalle en §04).</li>
+            </ol>
+          </div>
+          <div class="track">
+            <div class="track-title">Tareas — Frontend</div>
+            <ol class="steps">
+              <li><code class="inline">AvailableCouponsPanel.tsx</code> en el checkout: tarjetas/chips por cupón público (ej. "WELCOME2026 · 15% en toda la compra", "TECH30 · 30% en Tecnología"), botón "Usar" que rellena <code class="inline">CouponForm</code> y dispara el preview automáticamente.</li>
+              <li>Ruta <span class="filechip">/admin/cupones</span> (Shadcn <code class="inline">DataTable</code> + <code class="inline">Dialog</code>) para crear/editar cupones, con <code class="inline">Select</code> de categoría cuando <code class="inline">scope = CATEGORY</code>.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 3 ================= -->
+    <section class="doc" id="s3">
+      <div class="sec-head"><span class="num">03</span><h2>Arquitectura y patrones de diseño</h2></div>
+      <p class="sec-sub">Vista de componentes de extremo a extremo y los patrones exigidos por el enunciado, con su ubicación exacta en el código.</p>
+
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+flowchart TB
+  subgraph Client["Cliente"]
+    UI["React + Shadcn/ui + SCSS"]
+  end
+  subgraph GW["api-gateway"]
+    GWC["Routing + verificacion JWT + SSE"]
+  end
+  subgraph SVC["Microservicios internos"]
+    CAT["catalog-service"]
+    CUP["coupon-service"]
+    DISC["discount-service: Strategy + Factory"]
+    ORD["order-service: orquesta la saga"]
+    NOT["notification-service"]
+  end
+  subgraph Data["Datos"]
+    PG[("PostgreSQL: schema por servicio")]
+    REDIS[("Redis: pool, cache y pub-sub")]
+  end
+  SB["Supabase Auth"]
+  UI -->|HTTPS REST| GWC
+  UI -.->|EventSource| GWC
+  GWC -->|verifica JWT via JWKS| SB
+  GWC --> CAT
+  GWC --> CUP
+  GWC --> ORD
+  ORD -->|reservar stock| CAT
+  ORD -->|resolver cupon| CUP
+  ORD -->|calcular| DISC
+  ORD -->|tx propia| PG
+  CAT -->|tx propia| PG
+  CUP -->|tx propia| PG
+  ORD -.->|publish order.events| REDIS
+  REDIS -.->|subscribe| NOT
+  REDIS -.->|subscribe| GWC
+  GWC -->|pool| REDIS --> PG
+          </pre>
+          <figcaption>Fig. 1 — Cada servicio es un proceso NestJS independiente; el gateway es el único punto público. Las líneas punteadas son el canal asíncrono vía Redis Pub/Sub.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Aislamiento del motor de descuentos</h3>
+      <p><code class="inline">DiscountEngineService</code> y sus estrategias viven en el servicio <span class="filechip">discount-service</span>, que ni siquiera tiene conexión a base de datos — su único propósito es recibir un <code class="inline">DiscountContext</code> plano por HTTP interno y devolver un <code class="inline">CheckoutBreakdown</code> plano. Ninguna otra parte del sistema reimplementa la cascada: <code class="inline">order-service</code> lo invoca, nunca al revés. Esto responde directamente la pregunta obligatoria de <span class="filechip">docs/arquitectura.md</span> de forma aún más estricta que en un monolito — el aislamiento no es solo de carpeta, es de <i>proceso</i>.</p>
+
+      <h3>Patrones de diseño implementados (mínimo 2, aquí van 5)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Patrón</th><th>Dónde</th><th>Por qué</th></tr></thead>
+          <tbody>
+            <tr><td><b>Strategy</b></td><td><span class="filechip">discount-service/src/strategies/*.strategy.ts</span></td><td>Cada regla de descuento (Categoría, Volumen, Cupón) es intercambiable y testeable de forma aislada, sin condicionales <code class="inline">if/else</code> anidados en el orquestador.</td></tr>
+            <tr><td><b>Factory</b></td><td><span class="filechip">discount-service/src/factories/discount-strategy.factory.ts</span></td><td>Construye el pipeline ordenado de estrategias; agregar una 4ª regla futura solo requiere registrarla aquí (Open/Closed).</td></tr>
+            <tr><td><b>Observer</b></td><td><span class="filechip">frontend/src/state/cart.store.ts</span> (Zustand) y el canal Redis Pub/Sub <code class="inline">order.events</code> (los servicios suscriptores no conocen a <code class="inline">order-service</code>, solo el evento)</td><td>El carrito notifica a sus suscriptores (subtotal, contador de items, alerta 35%) sin acoplar componentes entre sí; a nivel de backend, el mismo principio desacopla <code class="inline">order-service</code> de quién reacciona a una orden confirmada.</td></tr>
+            <tr><td><b>Adapter</b></td><td><span class="filechip">api-gateway/src/auth/supabase-auth.adapter.ts</span></td><td>Envuelve el SDK de Supabase detrás de una interfaz propia <code class="inline">IdentityProvider</code>; el resto de la app depende de la abstracción, no de Supabase — permite migrar a Firebase/Auth0/Cognito tocando un solo servicio.</td></tr>
+            <tr><td><b>Repository</b></td><td><span class="filechip">order-service/src/orders.repository.ts</span>, <span class="filechip">catalog-service/src/products.repository.ts</span></td><td>Cada servicio tiene el suyo; es el único punto que conoce Prisma dentro de ese servicio — aísla persistencia de la lógica de negocio (requisito explícito del enunciado), ahora reforzado por el propio límite de proceso.</td></tr>
+            <tr><td><b>Saga (orquestación)</b></td><td><span class="filechip">order-service/src/checkout.saga.ts</span></td><td>Coordina catalog/coupon/discount-service en un orden fijo, con compensación explícita si el paso final de persistencia falla. Detalle completo en §09.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 4 ================= -->
+    <section class="doc" id="s4">
+      <div class="sec-head"><span class="num">04</span><h2>Motor de descuentos acumulativos</h2></div>
+      <p class="sec-sub">Algoritmo exacto, en cascada multiplicativa, con el tope absoluto del 35%.</p>
+
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["Subtotal original = suma precio x cantidad"] --> B{"Hay productos categoria Tecnologia?"}
+  B -->|Si| C["10% off sobre lineas Tecnologia"]
+  B -->|No| D["Subtotal sin cambio"]
+  C --> E["Subtotal tras Categoria"]
+  D --> E
+  E --> F{"Subtotal mayor a 100 USD?"}
+  F -->|Si| G["5% off sobre todo el carrito"]
+  F -->|No| H["Subtotal sin cambio"]
+  G --> I["Subtotal tras Volumen"]
+  H --> I
+  I --> J{"Cupon WELCOME2026 activo y vigente?"}
+  J -->|Si| K["15% off adicional"]
+  J -->|No| L["Subtotal sin cambio"]
+  K --> M["Subtotal tras Cupon"]
+  L --> M
+  M --> N["Descuento bruto = Original - Subtotal tras Cupon"]
+  N --> O{"Descuento bruto mayor al 35% del original?"}
+  O -->|Si| P["Truncar: descuento final = 35% del original"]
+  O -->|No| Q["Descuento final = descuento bruto"]
+  P --> R["Respuesta: breakdown + total final"]
+  Q --> R
+          </pre>
+          <figcaption>Fig. 2 — Cascada de precedencia: Categoría → Volumen → Cupón → tope absoluto.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Fórmulas</h3>
+      <div class="formula-box">
+subtotal_categoria   = Σ (precio_i × cant_i × 0.90 si categoria_i = "Tecnologia", sino × 1.00)
+subtotal_volumen     = subtotal_categoria × 0.95   si subtotal_categoria &gt; 100, sino subtotal_categoria
+subtotal_cupon       = subtotal_volumen   × 0.85   si cupon activo y vigente, sino subtotal_volumen
+
+descuento_bruto      = subtotal_original − subtotal_cupon
+tope_absoluto        = subtotal_original × 0.35
+
+descuento_final      = min(descuento_bruto, tope_absoluto)
+total_final          = subtotal_original − descuento_final
+pct_efectivo         = descuento_final / subtotal_original   (0 si subtotal_original = 0)
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>Aritmética monetaria:</b> nunca operar montos en <code class="inline">number</code> flotante sin control. Trabajar en centavos enteros (<code class="inline">Math.round(valor * 100)</code>) o con una librería decimal (<code class="inline">decimal.js</code>) para evitar errores de redondeo acumulados en la cascada — de lo contrario dos ejecuciones del mismo carrito pueden diferir en un centavo y romper una prueba de "igualdad exacta".</div>
+      </div>
+
+      <h3>Ejemplo trabajado (para incluir en la demo)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Paso</th><th>Detalle</th><th class="num-col">Monto (USD)</th></tr></thead>
+          <tbody>
+            <tr><td>Carrito</td><td>Laptop (Tecnología) $700 ×1, Mouse (Tecnología) $50 ×1, Libro (Libros) $30 ×1</td><td class="num-col">780.00</td></tr>
+            <tr><td>1. Categoría</td><td>10% sobre $750 de tecnología → −$75.00</td><td class="num-col">705.00</td></tr>
+            <tr><td>2. Volumen</td><td>705 &gt; 100 → 5% sobre 705 → −$35.25</td><td class="num-col">669.75</td></tr>
+            <tr><td>3. Cupón WELCOME2026</td><td>15% sobre 669.75 → −$100.46</td><td class="num-col">569.29</td></tr>
+            <tr><td>Tope 35%</td><td>Descuento bruto = 210.71 (27.02%) — no supera 273.00 (35%), no se trunca</td><td class="num-col">—</td></tr>
+            <tr><td><b>Total a pagar</b></td><td>—</td><td class="num-col"><b>569.29</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Este mismo caso, con cualquier combinación de productos, jamás supera <b>27.325%</b> de descuento total mientras el único cupón posible sea el <code class="inline">WELCOME2026</code> fijo (15%, alcance global) — usar este dato al defender la implementación del tope frente a la mesa evaluadora. Esa afirmación deja de ser absoluta en cuanto HU7 permite cupones con porcentaje y alcance configurables: ver el ejemplo 2 más abajo.</p>
+
+      <h3>Interfaz del pipeline</h3>
+      <pre class="code"><code>// discount-strategy.interface.ts
+export type DiscountName = 'CATEGORY' | 'VOLUME' | 'COUPON';
+
+export interface DiscountContext {
+  readonly originalSubtotal: number;   // en centavos
+  readonly items: ReadonlyArray&lt;CartLineSnapshot&gt;;
+  readonly runningSubtotal: number;    // subtotal remanente tras estrategias previas
+  readonly couponCode?: string;
+}
+
+export interface DiscountResult {
+  readonly name: DiscountName;
+  readonly amount: number;             // monto descontado por esta regla
+  readonly subtotalAfter: number;
+  readonly applied: boolean;
+  readonly reason?: 'NOT_APPLICABLE' | 'INVALID_COUPON' | 'EXPIRED_COUPON' | 'NOT_YET_VALID';
+}
+
+export interface DiscountStrategy {
+  readonly name: DiscountName;
+  isApplicable(ctx: DiscountContext): boolean;
+  apply(ctx: DiscountContext): DiscountResult;
+}</code></pre>
+
+      <h3>Actualización: cupones por categoría (HU7)</h3>
+      <p>Con <code class="inline">WELCOME2026</code> como único cupón, un monto agregado por carrito alcanzaba. En cuanto un cupón puede aplicar <b>solo a una categoría</b> (ej. <code class="inline">TECH30</code> en Tecnología, <code class="inline">JUGUETES10</code> en Juguetería), <code class="inline">CouponDiscountStrategy</code> necesita saber cuánto le queda a <i>cada línea</i>, no solo al carrito completo. El contexto se enriquece para llevar ese detalle por línea a través del pipeline; el patrón Strategy no cambia, solo lo que viaja en <code class="inline">DiscountContext</code>:</p>
+      <pre class="code"><code>export interface CartLineState {
+  productId: string;
+  category: string;
+  originalAmount: number;
+  remainingAmount: number;   // se reduce en cada paso del pipeline
+}
+
+export interface DiscountContext {
+  readonly originalSubtotal: number;
+  readonly lines: ReadonlyArray&lt;CartLineState&gt;;
+  readonly runningSubtotal: number;      // = suma de remainingAmount, mantenido en sync
+  readonly resolvedCoupon?: {
+    scope: 'GLOBAL' | 'CATEGORY';
+    categoryName?: string;
+    discountPercent: number;
+  };
+}
+
+// CouponDiscountStrategy.apply() — resumen
+function apply(ctx: DiscountContext): DiscountResult {
+  const pct = ctx.resolvedCoupon!.discountPercent / 100;
+  const targets = ctx.resolvedCoupon!.scope === 'CATEGORY'
+    ? ctx.lines.filter(l =&gt; l.category === ctx.resolvedCoupon!.categoryName)
+    : ctx.lines;
+  const amount = targets.reduce((sum, l) =&gt; sum + l.remainingAmount * pct, 0);
+  // devuelve DiscountResult + nuevas lines con remainingAmount actualizado solo en `targets`
+}</code></pre>
+
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>Vigencia = dos fechas, no una.</b> <code class="inline">coupons.valid_from</code> y <code class="inline">coupons.valid_to</code> ya estaban en el modelo de datos (§06), pero la primera versión de este documento nunca los comparaba explícitamente contra <code class="inline">now</code> en ningún lado — solo se mencionaba "cupón vigente" en prosa. <code class="inline">coupon-service</code> resuelve el código así, y es <code class="inline">resolve()</code> — no el motor de descuentos — quien decide la vigencia:</div>
+      </div>
+      <pre class="code"><code>// coupon-service/src/coupons.service.ts — POST /internal/coupons/resolve
+function resolveCoupon(code: string, now: Date): ResolvedCoupon | { applied: false; reason: DiscountReason } {
+  const coupon = repository.findByCode(code);
+  if (!coupon) return { applied: false, reason: 'INVALID_COUPON' };
+  if (!coupon.active) return { applied: false, reason: 'INVALID_COUPON' };
+  if (now &lt; coupon.validFrom) return { applied: false, reason: 'NOT_YET_VALID' };
+  if (now &gt; coupon.validTo) return { applied: false, reason: 'EXPIRED_COUPON' };
+  return { scope: coupon.scope, categoryName: coupon.categoryName, discountPercent: coupon.discountPercent };
+}</code></pre>
+
+      <h3>Ejemplo 2 — un cupón por categoría sí activa el tope del 35%</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Paso</th><th>Detalle</th><th class="num-col">Monto (USD)</th></tr></thead>
+          <tbody>
+            <tr><td>Carrito</td><td>Laptop (Tecnología) $700 ×1, Smartphone (Tecnología) $500 ×1 — 100% del carrito es Tecnología</td><td class="num-col">1200.00</td></tr>
+            <tr><td>1. Categoría (regla fija)</td><td>10% sobre $1200 de tecnología → −$120.00</td><td class="num-col">1080.00</td></tr>
+            <tr><td>2. Volumen (regla fija)</td><td>1080 &gt; 100 → 5% sobre 1080 → −$54.00</td><td class="num-col">1026.00</td></tr>
+            <tr><td>3. Cupón <code class="inline">TECH30</code> (creado por admin, scope Tecnología, 30%)</td><td>30% sobre 1026 (toda la línea es Tecnología) → −$307.80</td><td class="num-col">718.20</td></tr>
+            <tr><td>Tope 35%</td><td>Descuento bruto = 481.80 (40.15%) — <b>supera</b> 420.00 (35%) → se trunca</td><td class="num-col">—</td></tr>
+            <tr><td><b>Total a pagar</b></td><td>Original × 0.65</td><td class="num-col"><b>780.00</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Este segundo ejemplo es la prueba de que el guard del 35% <b>no es solo teórico</b>: en cuanto el negocio puede crear un cupón de categoría con un porcentaje razonable (30%), el tope se activa con datos perfectamente legítimos. Contar ambos ejemplos en la sustentación — "con las reglas fijas es inalcanzable, con un cupón de administrador es real" — demuestra que se entendió el sistema completo, no solo el caso de la letra del enunciado.</p>
+    </section>
+
+    <!-- ================= SECTION 5 ================= -->
+    <section class="doc" id="s5">
+      <div class="sec-head"><span class="num">05</span><h2>Secuencia del checkout</h2></div>
+      <p class="sec-sub">Camino feliz y camino de excepción de stock insuficiente, incluyendo el punto de entrada al patrón Saga/Outbox.</p>
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+sequenceDiagram
+  actor C as Cliente
+  participant UI as Frontend React
+  participant API as OrdersController
+  participant ENG as DiscountEngine
+  participant INV as InventoryService
+  participant DB as PostgreSQL tx
+  participant OUT as OutboxRelay
+  participant SSE as SSE Gateway
+
+  C->>UI: Click en Pagar
+  UI->>API: POST /checkout items, couponCode
+  API->>INV: reserveStock(items)
+  alt stock insuficiente
+    INV-->>API: InsufficientStockException
+    API-->>UI: 409 Conflict
+    UI-->>C: Alerta sin stock suficiente
+  else stock disponible
+    INV-->>API: reserva OK
+    API->>ENG: calculate(items, couponCode)
+    ENG-->>API: breakdown categoria volumen cupon cap
+    API->>DB: BEGIN TX insert order, order_items, outbox_event
+    DB-->>API: commit OK
+    API-->>UI: 201 order + breakdown
+    UI-->>C: Confirmacion y desglose en pantalla
+    API-->>OUT: nueva fila pendiente en outbox
+    OUT->>SSE: emit OrderConfirmed
+    SSE-->>UI: evento push, actualiza estado de la orden
+  end
+          </pre>
+          <figcaption>Fig. 3 — El commit de la orden y la publicación del evento están desacoplados: el cliente nunca espera al canal SSE.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 6 ================= -->
+    <section class="doc" id="s6">
+      <div class="sec-head"><span class="num">06</span><h2>Modelo de datos, ER y auditoría</h2></div>
+      <p class="sec-sub">Diagrama entidad-relación, tablas de auditoría con triggers, nombre ofuscado y firma HMAC, y estrategia de semilla (Prisma + Supabase).</p>
+
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+erDiagram
+  ROLES ||--o{ USER_ROLES : has
+  USERS ||--o{ USER_ROLES : assigned
+  USERS ||--o{ CARTS : owns
+  CARTS ||--o{ CART_ITEMS : contains
+  PRODUCTS ||--o{ CART_ITEMS : referenced
+  CATEGORIES ||--o{ PRODUCTS : classifies
+  PRODUCTS ||--o{ ORDER_ITEMS : referenced
+  ORDERS ||--o{ ORDER_ITEMS : contains
+  USERS ||--o{ ORDERS : places
+  COUPONS ||--o{ ORDERS : applied
+  CATEGORIES ||--o| COUPONS : scopes
+  ORDERS ||--o{ OUTBOX_EVENTS : emits
+  SERVICE_ACCOUNTS ||--o{ OUTBOX_EVENTS : publishes
+
+  USERS {
+    uuid id PK
+    string supabase_uid
+    string email
+    string display_name
+    timestamptz created_at
+  }
+  ROLES {
+    uuid id PK
+    string name
+  }
+  USER_ROLES {
+    uuid user_id FK
+    uuid role_id FK
+  }
+  SERVICE_ACCOUNTS {
+    uuid id PK
+    string name
+    string gcp_sa_email
+    string api_key_hash
+  }
+  CATEGORIES {
+    uuid id PK
+    string name
+  }
+  PRODUCTS {
+    uuid id PK
+    string sku
+    string name
+    numeric unit_price
+    uuid category_id FK
+    int stock
+  }
+  CARTS {
+    uuid id PK
+    uuid user_id FK
+    string status
+    timestamptz created_at
+  }
+  CART_ITEMS {
+    uuid id PK
+    uuid cart_id FK
+    uuid product_id FK
+    int quantity
+  }
+  COUPONS {
+    uuid id PK
+    string code
+    string label
+    string scope
+    uuid category_id FK
+    numeric discount_percent
+    boolean active
+    timestamptz valid_from
+    timestamptz valid_to
+  }
+  ORDERS {
+    uuid id PK
+    uuid user_id FK
+    uuid coupon_id FK
+    numeric original_subtotal
+    numeric category_discount_amount
+    numeric volume_discount_amount
+    numeric coupon_discount_amount
+    boolean discount_capped
+    numeric final_total
+    string status
+    bytea guest_info_enc
+    timestamptz created_at
+  }
+  ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid product_id FK
+    string category_snapshot
+    numeric unit_price_snapshot
+    int quantity
+    numeric line_discount_amount
+  }
+  OUTBOX_EVENTS {
+    uuid id PK
+    string aggregate_type
+    uuid aggregate_id
+    string event_type
+    jsonb payload
+    string status
+    timestamptz created_at
+  }
+          </pre>
+          <figcaption>Fig. 4 — Modelo relacional. <code>order_items</code> guarda "snapshots" de precio/categoría para que una orden histórica nunca cambie si el catálogo cambia después. <code>orders.guest_info_enc</code> guarda cifrado con JWE los datos de entrega cuando la compra fue como invitado (HU5).</figcaption>
+        </figure>
+      </div>
+
+      <h3>Un schema de Postgres por servicio</h3>
+      <p>Los 6 microservicios de §01/§03 comparten la <b>misma instancia</b> de Supabase (una sola factura, un solo backup) pero <b>nunca la misma tabla</b>: cada uno tiene su propio <i>schema</i> de Postgres y su propio <code class="inline">DATABASE_URL</code> (mismo host, <code class="inline">search_path</code> distinto). Ningún servicio hace un <code class="inline">JOIN</code> cruzando el schema de otro — si <code class="inline">order-service</code> necesita el nombre de un producto, se lo pide a <code class="inline">catalog-service</code> por HTTP interno y lo guarda como snapshot en <code class="inline">order_items</code>, nunca lo consulta directo. Esta es la versión pragmática de "database per service": separa la propiedad de los datos sin pagar el costo operativo de administrar 6 instancias de Postgres distintas para un proyecto de este tamaño.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Schema</th><th>Servicio dueño</th><th>Tablas</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">catalog</code></td><td><code class="inline">catalog-service</code></td><td><code class="inline">products</code>, <code class="inline">categories</code></td></tr>
+            <tr><td><code class="inline">coupon</code></td><td><code class="inline">coupon-service</code></td><td><code class="inline">coupons</code></td></tr>
+            <tr><td><code class="inline">order</code></td><td><code class="inline">order-service</code></td><td><code class="inline">orders</code>, <code class="inline">order_items</code>, <code class="inline">outbox_events</code></td></tr>
+            <tr><td><code class="inline">identity</code></td><td>Compartido, solo lectura desde <code class="inline">api-gateway</code></td><td><code class="inline">users</code>, <code class="inline">roles</code>, <code class="inline">user_roles</code></td></tr>
+            <tr><td><code class="inline">audit</code></td><td>Escrito solo por triggers, leído solo por <code class="inline">role_admin</code></td><td><code class="inline">_x27f_evt_trace</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tablas de auditoría con triggers, nombre ofuscado y firma HMAC</h3>
+      <p>Se usa <b>una única tabla central de auditoría</b> con nombre no descriptivo (evita que una exploración casual del esquema revele su propósito) y un <b>trigger genérico</b> reutilizado en cada tabla sensible, en vez de una tabla de auditoría por entidad. Cada fila se firma con <b>HMAC</b> (extensión <code class="inline">pgcrypto</code>) sobre su propio contenido, para que una modificación posterior de la fila de auditoría — no solo del dato original — sea detectable:</p>
+      <pre class="code"><code>-- migrations/002_audit_triggers.sql (Prisma migration escrita a mano)
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE _x27f_evt_trace (
+  id            BIGSERIAL PRIMARY KEY,
+  entity_name   TEXT NOT NULL,          -- tabla origen (products, orders, coupons...)
+  operation     TEXT NOT NULL,          -- INSERT | UPDATE | DELETE
+  row_pk        TEXT NOT NULL,
+  actor         TEXT,                   -- current_setting('app.current_user', true)
+  old_data      JSONB,
+  new_data      JSONB,
+  occurred_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  hmac_signature TEXT NOT NULL          -- integridad: hmac(fila, clave de servidor)
+);
+
+-- Solo el rol ADMIN puede leerla directamente
+REVOKE ALL ON _x27f_evt_trace FROM PUBLIC;
+GRANT SELECT ON _x27f_evt_trace TO role_admin;
+
+CREATE OR REPLACE FUNCTION _x27f_capture() RETURNS TRIGGER AS $$
+DECLARE
+  v_old JSONB := CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN row_to_json(OLD) END;
+  v_new JSONB := CASE WHEN TG_OP IN ('UPDATE','INSERT') THEN row_to_json(NEW) END;
+BEGIN
+  INSERT INTO _x27f_evt_trace(entity_name, operation, row_pk, actor, old_data, new_data, hmac_signature)
+  VALUES (
+    TG_TABLE_NAME,
+    TG_OP,
+    COALESCE(NEW.id::text, OLD.id::text),
+    current_setting('app.current_user', true),
+    v_old,
+    v_new,
+    encode(hmac(TG_TABLE_NAME || TG_OP || COALESCE(NEW.id::text, OLD.id::text) || COALESCE(v_new::text, v_old::text),
+                current_setting('app.audit_hmac_key'), 'sha256'), 'hex')
+  );
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_products_audit AFTER INSERT OR UPDATE OR DELETE ON products
+  FOR EACH ROW EXECUTE FUNCTION _x27f_capture();
+CREATE TRIGGER trg_orders_audit AFTER INSERT OR UPDATE OR DELETE ON orders
+  FOR EACH ROW EXECUTE FUNCTION _x27f_capture();
+CREATE TRIGGER trg_coupons_audit AFTER INSERT OR UPDATE OR DELETE ON coupons
+  FOR EACH ROW EXECUTE FUNCTION _x27f_capture();</code></pre>
+
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>La ofuscación del nombre no es seguridad real:</b> es una capa adicional de defensa en profundidad (dificulta el reconocimiento visual al navegar el esquema). La protección real son dos cosas: Row-Level Security + <code class="inline">GRANT</code> restringido al rol <code class="inline">role_admin</code> (control de acceso), y la firma <code class="inline">hmac_signature</code> (detección de manipulación posterior). Explicar esta distinción en la sustentación evita que un evaluador la lea como "seguridad por oscuridad" mal entendida.</div>
+      </div>
+
+      <h3>Semilla de datos: Prisma + Supabase</h3>
+      <p>Un único script <code class="inline">prisma/seed.ts</code>, ejecutado con <code class="inline">prisma db seed</code> contra la instancia de Supabase, siembra roles, catálogo y cupones. (Se evaluó gobernar el esquema con Liquibase por separado de Prisma — ver la tabla de decisiones de §01 — y se descartó por duplicar herramienta de migración sin un equipo de datos independiente que lo justifique.)</p>
+      <pre class="code"><code>// prisma/seed.ts
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+async function main() {
+  const [customerRole, adminRole] = await Promise.all([
+    prisma.role.upsert({ where: { name: 'CUSTOMER' }, update: {}, create: { name: 'CUSTOMER' } }),
+    prisma.role.upsert({ where: { name: 'ADMIN' }, update: {}, create: { name: 'ADMIN' } }),
+  ]);
+
+  const tecnologia = await prisma.category.upsert({ where: { name: 'Tecnologia' }, update: {}, create: { name: 'Tecnologia' } });
+  const jugueteria = await prisma.category.upsert({ where: { name: 'Jugueteria' }, update: {}, create: { name: 'Jugueteria' } });
+
+  await prisma.coupon.upsert({
+    where: { code: 'WELCOME2026' },
+    update: {},
+    create: { code: 'WELCOME2026', label: '15% en toda la compra', scope: 'GLOBAL', discountPercent: 15, active: true, validFrom: new Date('2026-01-01'), validTo: new Date('2027-01-01') },
+  });
+  await prisma.coupon.upsert({
+    where: { code: 'TECH30' },
+    update: {},
+    create: { code: 'TECH30', label: '30% en Tecnologia', scope: 'CATEGORY', categoryId: tecnologia.id, discountPercent: 30, active: true, validFrom: new Date('2026-01-01'), validTo: new Date('2027-01-01') },
+  });
+  await prisma.coupon.upsert({
+    where: { code: 'JUGUETES10' },
+    update: {},
+    create: { code: 'JUGUETES10', label: '10% en Jugueteria', scope: 'CATEGORY', categoryId: jugueteria.id, discountPercent: 10, active: true, validFrom: new Date('2026-01-01'), validTo: new Date('2027-01-01') },
+  });
+  await prisma.coupon.upsert({
+    where: { code: 'EXPIRED2025' },
+    update: {},
+    create: { code: 'EXPIRED2025', label: 'Cupon vencido (edge case de prueba)', scope: 'GLOBAL', discountPercent: 20, active: true, validFrom: new Date('2025-01-01'), validTo: new Date('2025-12-31') },
+  });
+  await prisma.coupon.upsert({
+    where: { code: 'FUTURE2027' },
+    update: {},
+    create: { code: 'FUTURE2027', label: 'Cupon aun no vigente (edge case de prueba)', scope: 'GLOBAL', discountPercent: 25, active: true, validFrom: new Date('2027-06-01'), validTo: new Date('2028-01-01') },
+  });
+}
+
+main().finally(() => prisma.$disconnect());</code></pre>
+      <p>Catálogo semilla sugerido (10 productos): 4 de categoría <b>Tecnología</b> (Laptop $700, Smartphone $500, Auriculares $80, Mouse $50), 2 de <b>Juguetería</b>, 2 de <b>Hogar</b>, 2 de <b>Libros</b> — variedad suficiente para ejercitar la regla de categoría y los dos cupones por categoría sin forzarlos en cada caso de prueba.</p>
+    </section>
+
+    <!-- ================= SECTION 7 ================= -->
+    <section class="doc" id="s7">
+      <div class="sec-head"><span class="num">07</span><h2>Contrato de API</h2></div>
+      <p class="sec-sub">Endpoints REST, DTOs y documentación Swagger/OpenAPI.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th><th>Auth</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/products</code></td><td>Catálogo con id, nombre, precio, categoría, stock</td><td>Pública</td></tr>
+            <tr><td><code class="inline">POST</code></td><td><code class="inline">/api/v1/checkout/preview</code></td><td>Calcula el desglose sin persistir (HU2)</td><td>Pública / Customer</td></tr>
+            <tr><td><code class="inline">POST</code></td><td><code class="inline">/api/v1/checkout</code></td><td>Valida stock, calcula y persiste la orden (HU3)</td><td>Customer</td></tr>
+            <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/orders/:id</code></td><td>Consulta una orden persistida</td><td>Customer / Admin</td></tr>
+            <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/coupons/:code</code></td><td>Valida existencia/vigencia de un cupón</td><td>Pública</td></tr>
+            <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/coupons/available</code></td><td>Lista cupones activos y vigentes para mostrar en el checkout (HU7)</td><td>Pública</td></tr>
+            <tr><td><code class="inline">POST</code></td><td><code class="inline">/api/v1/coupons</code></td><td>Crea un cupón, global o por categoría (HU7)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">PATCH</code></td><td><code class="inline">/api/v1/coupons/:id</code></td><td>Edita/desactiva un cupón (HU7)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">POST</code></td><td><code class="inline">/api/v1/products</code></td><td>Crea un producto (HU6)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">PATCH</code></td><td><code class="inline">/api/v1/products/:id</code></td><td>Edita nombre/precio/categoría (HU6)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">PATCH</code></td><td><code class="inline">/api/v1/products/:id/stock</code></td><td>Ajuste atómico de stock (<code class="inline">{ delta }</code>) (HU6)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">DELETE</code></td><td><code class="inline">/api/v1/products/:id</code></td><td>Soft delete de un producto (HU6)</td><td>Admin (IAM)</td></tr>
+            <tr><td><code class="inline">PATCH</code></td><td><code class="inline">/api/v1/users/me/profile</code></td><td>Guarda una dirección de entrega por defecto (HU5)</td><td>Customer</td></tr>
+            <tr><td><code class="inline">GET</code></td><td><code class="inline">/api/v1/admin/audit</code></td><td>Consulta <code class="inline">_x27f_evt_trace</code> vía función <code class="inline">SECURITY DEFINER</code></td><td>Admin (IAM)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>No hay un endpoint propio de login/registro: el frontend habla directo con Supabase Auth (<code class="inline">@supabase/supabase-js</code>) y adjunta el JWT resultante como <code class="inline">Authorization: Bearer</code> en cada request al backend — ver §08.</p>
+
+      <h3>Contratos internos entre servicios</h3>
+      <p>Estos endpoints <b>nunca son públicos</b> — no pasan por el Ingress ni por el gateway hacia afuera; en GKE son <code class="inline">ClusterIP</code>, en local son direcciones internas de la red de docker-compose. Cada request interna lleva un header <code class="inline">X-Internal-Token</code> (secreto compartido; en producción, mTLS vía el service mesh) — cualquier servicio rechaza sin él.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Llamador</th><th>Llamado</th><th>Endpoint</th><th>Propósito</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">order-service</code></td><td><code class="inline">catalog-service</code></td><td><code class="inline">POST /internal/stock/reserve</code></td><td>Primer paso de la saga (§09)</td></tr>
+            <tr><td><code class="inline">order-service</code></td><td><code class="inline">catalog-service</code></td><td><code class="inline">POST /internal/stock/release</code></td><td>Compensación si la persistencia final falla (§09)</td></tr>
+            <tr><td><code class="inline">order-service</code></td><td><code class="inline">coupon-service</code></td><td><code class="inline">POST /internal/coupons/resolve</code></td><td>Resuelve código → descuento/alcance; comprueba <code class="inline">active</code> y <b>ambos</b> extremos de vigencia (<code class="inline">valid_from</code>/<code class="inline">valid_to</code>), o retorna motivo (§04)</td></tr>
+            <tr><td><code class="inline">order-service</code></td><td><code class="inline">discount-service</code></td><td><code class="inline">POST /internal/discounts/calculate</code></td><td>Cascada + tope del 35%</td></tr>
+            <tr><td><code class="inline">api-gateway</code></td><td><code class="inline">discount-service</code> / <code class="inline">coupon-service</code></td><td>mismos internos</td><td>Camino de <code class="inline">/checkout/preview</code> (HU2), sin pasar por <code class="inline">order-service</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DTOs (contrato compartido)</h3>
+      <pre class="code"><code>// packages/shared-contracts/src/checkout.dto.ts
+export interface CartItemInputDto {
+  productId: string;
+  quantity: number;         // entero &gt; 0, validado con class-validator (@IsInt, @Min(1))
+}
+
+export interface GuestInfoDto {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export interface CheckoutRequestDto {
+  items: CartItemInputDto[];
+  couponCode?: string;
+  guestInfo?: GuestInfoDto;   // obligatorio si la request no trae sesion valida (HU5)
+}
+
+export interface DiscountLineDto {
+  applied: boolean;
+  amount: number;
+  reason?: 'NOT_APPLICABLE' | 'INVALID_COUPON' | 'EXPIRED_COUPON';
+}
+
+export interface CheckoutResponseDto {
+  orderId: string | null;   // null en /preview
+  originalSubtotal: number;
+  breakdown: {
+    category: DiscountLineDto;
+    volume: DiscountLineDto;
+    coupon: DiscountLineDto;
+    cappedAt35: boolean;
+  };
+  totalDiscount: number;
+  effectiveDiscountPercentage: number;
+  finalTotal: number;
+}</code></pre>
+
+      <h3>Swagger / OpenAPI</h3>
+      <p>Módulo <code class="inline">@nestjs/swagger</code> montado en <code class="inline">main.ts</code>, expuesto en <code class="inline">/api/docs</code>. Cada DTO se anota con <code class="inline">@ApiProperty</code> para que el esquema publicado sea idéntico al contrato TypeScript (una sola fuente de verdad, sin documentación manual que se desactualice).</p>
+      <pre class="code"><code>// main.ts
+const config = new DocumentBuilder()
+  .setTitle('Core E-Commerce Checkout API')
+  .setDescription('Motor de descuentos acumulativos y procesamiento de órdenes')
+  .setVersion('1.0')
+  .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
+  .build();
+const document = SwaggerModule.createDocument(app, config);
+SwaggerModule.setup('api/docs', app, document);</code></pre>
+    </section>
+
+    <!-- ================= SECTION 8 ================= -->
+    <section class="doc" id="s8">
+      <div class="sec-head"><span class="num">08</span><h2>Seguridad, IAM y payloads cifrados</h2></div>
+      <p class="sec-sub">Supabase Auth para identidad de usuario, JWT firmado para sesión, JWE acotado a cifrar datos sensibles en reposo, roles IAM y service accounts para comunicación entre servicios.</p>
+
+      <h3>Flujo de identidad</h3>
+      <ol class="steps">
+        <li>El usuario se autentica <b>directo desde el frontend</b> contra <b>Supabase Auth</b> (<code class="inline">@supabase/supabase-js</code>, email/password) — no hay backend propio de login.</li>
+        <li>Supabase devuelve un <b>JWT firmado (JWS)</b> con <code class="inline">{ sub, email, exp }</code>; el frontend lo guarda en <code class="inline">authStore</code> y lo envía como <code class="inline">Authorization: Bearer</code> en cada request al backend.</li>
+        <li><code class="inline">SupabaseAuthGuard</code> (backend) verifica la firma contra el <b>JWKS público</b> de Supabase (sin llamar a un servicio externo por cada request — el JWKS se cachea), sin necesidad de un intercambio de token adicional.</li>
+        <li>Los roles (<code class="inline">CUSTOMER</code>/<code class="inline">ADMIN</code>) se resuelven consultando la tabla local <code class="inline">user_roles</code> por <code class="inline">supabase_uid</code> (no van dentro del JWT de Supabase, que el backend no controla) y se adjuntan a <code class="inline">req.user.roles</code>.</li>
+        <li><code class="inline">RolesGuard(['ADMIN'])</code> reutiliza ese <code class="inline">req.user.roles</code> para proteger los endpoints de HU6/HU7.</li>
+      </ol>
+
+      <div class="callout callout-insight">
+        <div class="ico">i</div>
+        <div class="body"><b>Dónde queda JWE:</b> el JWT de Supabase es solo <i>firmado</i> (JWS) — cualquiera puede leer su payload en base64, solo no puede alterarlo sin invalidar la firma; eso alcanza para autorización porque viaja por HTTPS y no lleva datos sensibles, solo <code class="inline">sub</code>/<code class="inline">email</code>/<code class="inline">exp</code>. El cifrado con <b>JWE</b> se reserva para un caso donde sí hay un dato sensible que proteger <i>en reposo</i>: el bloque <code class="inline">guestInfo</code> (nombre, email, teléfono, dirección) de un checkout sin cuenta (HU5), que se cifra antes de escribirse en <code class="inline">orders.guest_info_enc</code> y solo se descifra bajo demanda para <code class="inline">ADMIN</code> o para el propio flujo de despacho.</div>
+      </div>
+
+      <pre class="code"><code>// guest-info.crypto.ts — cifrado con jose (A256GCM, clave simetrica en Secret Manager)
+import { EncryptJWT, jwtDecrypt } from 'jose';
+
+async function encryptGuestInfo(info: GuestInfoDto, key: Uint8Array): Promise&lt;string&gt; {
+  return new EncryptJWT({ ...info })
+    .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
+    .setIssuedAt()
+    .encrypt(key);
+}
+
+async function decryptGuestInfo(blob: string, key: Uint8Array): Promise&lt;GuestInfoDto&gt; {
+  const { payload } = await jwtDecrypt(blob, key);
+  return payload as unknown as GuestInfoDto;
+}</code></pre>
+
+      <h3>Roles IAM</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rol</th><th>Alcance</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">CUSTOMER</code></td><td>Consultar catálogo, hacer checkout, ver sus propias órdenes, guardar dirección de entrega</td></tr>
+            <tr><td><code class="inline">ADMIN</code></td><td>Gestionar productos/inventario (HU6) y cupones (HU7), consultar la bitácora de auditoría, descifrar <code class="inline">guest_info_enc</code> cuando el pedido lo requiere</td></tr>
+            <tr><td><code class="inline">SERVICE_ACCOUNT</code></td><td>Comunicación servicio-a-servicio (workers de inventario/notificación) — no representa a un usuario humano</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Autenticación servicio-a-servicio</h3>
+      <p>Solo <code class="inline">api-gateway</code> verifica el JWT del usuario final. Los servicios internos (<code class="inline">catalog-service</code>, <code class="inline">coupon-service</code>, <code class="inline">discount-service</code>, <code class="inline">order-service</code>, <code class="inline">notification-service</code>) <b>no vuelven a verificar ese JWT</b> — confían en la red interna y exigen el header <code class="inline">X-Internal-Token</code> descrito en §07. Esto evita que cada servicio duplique la lógica de verificación de Supabase, a costa de que la red interna deba estar genuinamente cerrada (sin exposición pública de esos puertos) — trade-off explícito para <span class="filechip">docs/arquitectura.md</span>. En el Nivel Enterprise ese token compartido se reemplaza por <b>mTLS</b> entre pods vía el service mesh de GKE, con la identidad de cada llamada dada por la ServiceAccount de Kubernetes del pod que llama (ver abajo), no por un secreto compartido.</p>
+
+      <h3>Service accounts (nivel enterprise)</h3>
+      <p>Cada worker de GKE corre bajo su propia <b>Kubernetes ServiceAccount</b>, vinculada vía <b>Workload Identity</b> a una service account de GCP IAM de mínimo privilegio: <code class="inline">sa-order-service@PROJECT.iam.gserviceaccount.com</code> (Cloud SQL Client + Secret Manager Accessor) y <code class="inline">sa-inventory-worker@PROJECT.iam.gserviceaccount.com</code> (mismo Cloud SQL, sin acceso a Secret Manager de la clave JWE de datos de invitado). Ningún pod usa una clave JSON de service account montada como archivo — Workload Identity evita ese secreto de larga vida. A nivel de Supabase, el backend usa la <code class="inline">service_role key</code> (privilegio total, salta RLS) solo desde el servidor; el frontend usa exclusivamente la <code class="inline">anon key</code> sujeta a RLS.</p>
+    </section>
+
+    <!-- ================= SECTION 9 ================= -->
+    <section class="doc" id="s9">
+      <div class="sec-head"><span class="num">09</span><h2>Eventos, patrón Saga y Outbox</h2></div>
+      <p class="sec-sub">Con 6 microservicios el checkout es genuinamente distribuido: la saga por orquestación deja de ser teórica.</p>
+
+      <div class="callout callout-decision">
+        <div class="ico">D</div>
+        <div class="body"><b>Decisión de arquitectura:</b> el checkout usa <b>Saga por orquestación</b> — <code class="inline">order-service</code> es el único orquestador, llama a los demás servicios en un orden fijo y es el único que sabe compensar. Se prefiere sobre coreografía para este tramo porque el flujo es lineal y de cuatro pasos: una cadena de eventos donde cada servicio reacciona al anterior sería más difícil de seguir para el mismo resultado. La <b>Saga por coreografía</b> (servicios reaccionando a eventos sin un orquestador central) se reserva para lo que pasa <i>después</i> de <code class="inline">OrderConfirmed</code> — notificación, y el día que exista una pasarela de pago externa como paso adicional.</div>
+      </div>
+
+      <h3>La saga de checkout, paso a paso</h3>
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["order-service: checkout recibido"] --> B["catalog-service: reservar stock"]
+  B -->|sin stock suficiente| B1["Abortar: 409 al cliente, nada persistido"]
+  B -->|reservado| C["coupon-service: resolver cupon"]
+  C --> D["discount-service: calcular breakdown y tope 35%"]
+  D --> E["order-service: persistir orden + items + outbox, tx propia"]
+  E -->|fallo de persistencia| F["COMPENSAR: catalog-service libera el stock reservado"]
+  F --> G["Responder 500, la orden no existe"]
+  E -->|OK| H["Responder 201 al cliente con el breakdown"]
+  H --> I["OutboxRelay publica OrderConfirmed en Redis Pub-Sub"]
+          </pre>
+          <figcaption>Fig. 5 — Único paso compensable del checkout: si la persistencia falla <i>después</i> de reservar stock, ese stock debe liberarse explícitamente — es la parte real de "Saga" en este flujo, no un adorno conceptual.</figcaption>
+        </figure>
+      </div>
+      <p>Los tres primeros pasos (reservar, resolver cupón, calcular) son de solo lectura o reversibles sin efecto secundario si fallan antes de completarse — no necesitan compensación porque, si fallan, simplemente no dejaron nada que deshacer. El único paso con efecto persistente antes del commit final es la reserva de stock en <code class="inline">catalog-service</code>; por eso es el único con una compensación explícita (<code class="inline">release</code>).</p>
+
+      <h3>Estados de la orden</h3>
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+stateDiagram-v2
+  [*] --> PENDING
+  PENDING --> STOCK_RESERVED: reserveStock OK
+  PENDING --> FAILED: sin stock
+  STOCK_RESERVED --> CONFIRMED: commit orden + outbox
+  CONFIRMED --> NOTIFIED: worker consume OrderConfirmed
+  CONFIRMED --> PAYMENT_PENDING: extension futura, gateway externo
+  PAYMENT_PENDING --> COMPLETED: pago aprobado
+  PAYMENT_PENDING --> COMPENSATING: pago rechazado
+  COMPENSATING --> STOCK_RELEASED: releaseStock
+  STOCK_RELEASED --> CANCELLED
+  FAILED --> [*]
+  CANCELLED --> [*]
+  COMPLETED --> [*]
+  NOTIFIED --> [*]
+          </pre>
+          <figcaption>Fig. 6 — Estados de la orden. La rama de compensación (<code>COMPENSATING → STOCK_RELEASED</code>) cubre el caso adicional de que la reversión ocurra <i>después</i> de confirmada la orden (ej. un pago externo rechazado), a diferencia de la Fig. 5, que compensa dentro del mismo checkout.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Outbox transaccional (la base del "Event Sourcing" pedido)</h3>
+      <p>En vez de mantener un event store completo desde el día uno, <code class="inline">order-service</code> implementa el patrón <b>Transactional Outbox</b>: cada cambio de estado relevante escribe una fila en su tabla <code class="inline">outbox_events</code> <i>dentro de la misma transacción</i> que el cambio de negocio (mismo schema <code class="inline">order</code>, ver §06). Un proceso <code class="inline">OutboxRelay</code> — dentro del propio <code class="inline">order-service</code>, no un servicio aparte — hace <i>polling</i> de filas <code class="inline">status = 'PENDING'</code> y las publica al canal Redis, marcándolas <code class="inline">PUBLISHED</code>. Esto da la garantía que Event Sourcing busca (ningún cambio de estado se pierde ni se publica sin haber ocurrido realmente) sin la complejidad operativa de reconstruir agregados desde un log de eventos completo.</p>
+
+      <h3>Topología de mensajería (Redis Pub/Sub)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Canal</th><th>Publica</th><th>Suscriptores</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">order.events</code></td><td><code class="inline">OutboxRelay</code> de <code class="inline">order-service</code></td><td><code class="inline">notification-service</code> (envía confirmación) y <code class="inline">api-gateway</code> (reenvía por SSE al navegador que hizo la compra)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>Trade-off honesto:</b> Redis Pub/Sub es <i>at-most-once</i> y no persiste mensajes — si <code class="inline">notification-service</code> está caído en el instante exacto de la publicación, ese mensaje se pierde para él (la orden en sí no se pierde, solo la notificación). Para un MVP es un riesgo aceptado; el <code class="inline">status = 'PENDING'</code> en <code class="inline">outbox_events</code> sigue siendo la fuente de verdad de "esto pasó", así que un reprocesamiento manual siempre es posible. Si el negocio necesitara entrega garantizada incluso con consumidores caídos, ese es exactamente el punto donde se introduce RabbitMQ (colas durables, <code class="inline">order.events</code> como exchange topic, <code class="inline">dlq.order-events</code> como dead-letter) sin tocar <code class="inline">order-service</code> — solo se cambia la implementación de <code class="inline">EventPublisher</code>.</div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 10 ================= -->
+    <section class="doc" id="s10">
+      <div class="sec-head"><span class="num">10</span><h2>Resiliencia</h2></div>
+      <p class="sec-sub">Pool de conexiones con Redis, circuit breakers y caminos explícitos de excepción en integraciones externas.</p>
+
+      <h3>Redis como pool de conexión de la DB</h3>
+      <p>El driver de Postgres (<code class="inline">pg</code>/Prisma) ya mantiene su propio pool TCP; lo que Redis añade aquí es un <b>semáforo distribuido</b> que limita cuántas consultas concurrentes puede emitir el conjunto de pods hacia la base de datos, algo que un pool local por proceso no puede coordinar entre réplicas durante un escalado automático agresivo en GKE.</p>
+      <div class="callout callout-warn">
+        <div class="ico">!</div>
+        <div class="body"><b>Trade-off honesto para arquitectura.md:</b> el estándar de la industria para pooling real de Postgres es <b>PgBouncer</b> (pooling a nivel de transacción, reduce conexiones reales en el servidor). El semáforo en Redis <i>no</i> reduce el número de conexiones abiertas; solo evita una tormenta de solicitudes simultáneas. Se documenta como complemento, no reemplazo — en una implementación de producción real se usarían ambos.</div>
+      </div>
+      <pre class="code"><code>// redis-pool.provider.ts (semaforo tipo token-bucket)
+async function withDbSlot&lt;T&gt;(redis: Redis, fn: () =&gt; Promise&lt;T&gt;): Promise&lt;T&gt; {
+  const acquired = await redis.set('db:slots', '1', 'NX', 'EX', 5); // ejemplo simplificado
+  // implementacion real: script Lua con contador + limite configurable (p.ej. 50 slots)
+  try {
+    return await fn();
+  } finally {
+    await redis.decr('db:active-connections');
+  }
+}</code></pre>
+
+      <h3>Circuit breaker</h3>
+      <p>Con 6 servicios llamándose entre sí por red, un circuito abierto ya no es un caso raro de "integración externa" — es tráfico normal entre <code class="inline">order-service</code> y sus tres dependencias síncronas (<code class="inline">catalog-service</code>, <code class="inline">coupon-service</code>, <code class="inline">discount-service</code>). Cada llamada saliente (incluidas esas tres, más la verificación de JWT contra Supabase) se envuelve con <code class="inline">opossum</code>: tras <i>N</i> fallos consecutivos el circuito pasa a <code class="inline">OPEN</code> y responde con el fallback inmediatamente (sin seguir golpeando el servicio caído); tras un intervalo pasa a <code class="inline">HALF_OPEN</code> para probar con una sola solicitud antes de cerrar de nuevo.</p>
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  A["Llamada a servicio externo"] --> B{"Circuito abierto?"}
+  B -->|No| C["Ejecutar llamada"]
+  C --> D{"Exito?"}
+  D -->|Si| E["Responder normalmente"]
+  D -->|No| F["Incrementar contador de fallos"]
+  F --> G{"Supera umbral?"}
+  G -->|Si| H["Abrir circuito"]
+  G -->|No| E2["Responder error puntual"]
+  B -->|Si| I["Ejecutar fallback inmediato"]
+  H --> I
+  I --> J["Log + metrica + reintento diferido"]
+          </pre>
+          <figcaption>Fig. 7 — Camino de excepción genérico para cualquier llamada saliente (a otro microservicio o a Supabase).</figcaption>
+        </figure>
+      </div>
+
+      <h4>Caminos de excepción por integración</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Integración</th><th>Falla</th><th>Comportamiento</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase Auth (verificar JWT)</td><td>JWKS inalcanzable</td><td>Circuito abre en <code class="inline">api-gateway</code> → 503 "Servicio de autenticación no disponible" — la JWKS se cachea, así que solo afecta a tokens nuevos, no a sesiones ya validadas en esta instancia</td></tr>
+            <tr><td><code class="inline">order-service → catalog-service</code> (reservar stock)</td><td>Timeout / servicio caído</td><td>Circuito abre → checkout responde 503 con <code class="inline">Retry-After</code>; no se persiste nada (falla antes del primer efecto)</td></tr>
+            <tr><td><code class="inline">order-service → discount-service</code> (calcular)</td><td>Timeout / servicio caído</td><td>Circuito abre → <b>compensación</b>: se libera el stock ya reservado, checkout responde 503</td></tr>
+            <tr><td>Redis Pub/Sub (publish)</td><td>Conexión rechazada</td><td>El evento queda <code class="inline">PENDING</code> en el outbox; el checkout <b>igual responde 201</b> al cliente (la publicación es eventual, no bloqueante); el relay reintenta con backoff exponencial</td></tr>
+            <tr><td>Base de datos</td><td>Pool agotado</td><td>Excepción tipada <code class="inline">DbUnavailableException</code> → 503 con <code class="inline">Retry-After</code></td></tr>
+            <tr><td>Cupón / Inventario</td><td>Dato corrupto o inconsistente</td><td>Se trata como resultado de negocio (400 con detalle de validación), nunca como excepción no controlada 500</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 11 ================= -->
+    <section class="doc" id="s11">
+      <div class="sec-head"><span class="num">11</span><h2>Despliegue en GCP con Kubernetes</h2></div>
+      <p class="sec-sub">Arquitectura objetivo de despliegue — no se levanta para la demo de 20 minutos, se defiende como diseño.</p>
+
+      <div class="diagram-frame">
+        <figure>
+          <pre class="mermaid">
+flowchart TB
+  subgraph GCP["Proyecto GCP"]
+    subgraph GKE["Cluster GKE: namespace ecommerce-prod"]
+      FE["Deployment frontend: Nginx + build Vite"]
+      GW["Deployment api-gateway: HPA 2 a 6 replicas"]
+      CATD["Deployment catalog-service"]
+      CUPD["Deployment coupon-service"]
+      DISD["Deployment discount-service"]
+      ORDD["Deployment order-service"]
+      NOTD["Deployment notification-service"]
+      SEC["CSI Secret Store"]
+    end
+    ING["Ingress GCE + ManagedCertificate"]
+    ARTREG["Artifact Registry"]
+    BUILD["Cloud Build CI/CD"]
+    SM["Secret Manager"]
+    LOG["Cloud Logging y Monitoring"]
+  end
+  subgraph Managed["Servicios Gestionados"]
+    SB[("Supabase PostgreSQL: schema por servicio")]
+    RD[("Memorystore Redis: pool, cache y pub-sub")]
+    FBA["Supabase Auth"]
+  end
+  Users(("Usuarios"))
+  Users --> ING --> FE
+  ING --> GW
+  GW --> CATD
+  GW --> CUPD
+  GW --> ORDD
+  GW --> DISD
+  ORDD -->|reservar/liberar| CATD
+  ORDD -->|resolver| CUPD
+  ORDD -->|calcular| DISD
+  CATD --> SB
+  CUPD --> SB
+  ORDD --> SB
+  GW --> FBA
+  GW --> RD
+  ORDD -.->|publish| RD
+  RD -.->|subscribe| NOTD
+  RD -.->|subscribe| GW
+  SEC --> SM
+  BUILD --> ARTREG --> GKE
+  GKE --> LOG
+          </pre>
+          <figcaption>Fig. 8 — Despliegue objetivo en GKE: cada microservicio es su propio Deployment/ClusterIP. La demo local levanta exactamente los mismos 6 servicios + Postgres + Redis, pero con <code>docker compose up</code> en vez de <code>kubectl apply</code>.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Pipeline CI/CD (Cloud Build)</h3>
+      <ol class="steps">
+        <li><code class="inline">lint</code> + <code class="inline">type-check</code> estrictos en frontend y backend.</li>
+        <li><code class="inline">test</code> con umbral de cobertura 80% como <i>gate</i> obligatorio — el pipeline falla si no se cumple (ver §12).</li>
+        <li><code class="inline">docker build</code> de cada uno de los 6 servicios bajo <span class="filechip">apps/backend/services/*/</span> y de <span class="filechip">apps/frontend</span> — 7 imágenes, cada una con tag del SHA de commit, push a Artifact Registry.</li>
+        <li>Despliegue a namespace <code class="inline">ecommerce-staging</code> vía <code class="inline">kubectl apply</code>/Helm (un chart por servicio, o un solo chart parametrizado).</li>
+        <li>Smoke test contra <code class="inline">/api/v1/products</code> y <code class="inline">/api/v1/checkout/preview</code> a través del gateway de staging.</li>
+        <li>Aprobación manual → promoción a <code class="inline">ecommerce-prod</code>.</li>
+      </ol>
+      <p>Local para la sustentación: un único <code class="inline">docker-compose.yml</code> en la raíz del monorepo levanta los 6 servicios + Postgres + Redis con un solo comando — ver <span class="filechip">README.md</span>. Nada de esto requiere GKE para demostrarse en los 20 minutos.</p>
+    </section>
+
+    <!-- ================= SECTION 12 ================= -->
+    <section class="doc" id="s12">
+      <div class="sec-head"><span class="num">12</span><h2>Pruebas y cobertura (80%)</h2></div>
+      <p class="sec-sub">Qué probar, cómo probar el edge case "imposible" del 35%, y cómo configurar el umbral como puerta de calidad.</p>
+
+      <div class="grid-2">
+        <div>
+          <h4>Backend (Jest)</h4>
+          <ul class="chk-list">
+            <li><code class="inline">CategoryDiscountStrategy</code>: aplica solo a líneas Tecnología; no aplica si no hay ninguna.</li>
+            <li><code class="inline">VolumeDiscountStrategy</code>: umbral exacto en $100.00 (no aplica en 100.00, aplica en 100.01).</li>
+            <li><code class="inline">CouponDiscountStrategy</code> / <code class="inline">coupon-service.resolveCoupon</code>: cupón inexistente, inactivo, expirado (<code class="inline">now &gt; valid_to</code>) y <b>aún no vigente</b> (<code class="inline">now &lt; valid_from</code>) — los cuatro casos retornan <code class="inline">applied:false</code> con su <code class="inline">reason</code>, sin lanzar excepción.</li>
+            <li><code class="inline">applyAbsoluteCap</code> probado <b>en aislamiento</b> con un descuento bruto sintético del 50% → debe truncar a 35% exacto (así se cubre el edge case aunque sea inalcanzable con las 3 reglas reales).</li>
+            <li>Carrito vacío → subtotal 0, sin división por cero, <code class="inline">effectiveDiscountPercentage = 0</code>.</li>
+            <li>Payload corrupto (<code class="inline">quantity: -1</code>, <code class="inline">productId</code> inexistente) → 400 con detalle de validación.</li>
+            <li><code class="inline">InventoryService</code>: solicitar más unidades que el stock disponible → <code class="inline">InsufficientStockException</code>, stock no se decrementa.</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Frontend (Vitest + Testing Library)</h4>
+          <ul class="chk-list">
+            <li><code class="inline">cart.store</code>: agregar/quitar líneas recalcula el subtotal derivado correctamente.</li>
+            <li><code class="inline">cart.store</code>: no permite cantidad negativa ni superar el stock mostrado.</li>
+            <li><code class="inline">DiscountBreakdown</code>: renderiza los 3 montos y el total final desde un breakdown mockeado.</li>
+            <li><code class="inline">DiscountCapAlert</code>: visible con el texto exacto cuando <code class="inline">cappedAt35 = true</code>; ausente cuando es <code class="inline">false</code>.</li>
+            <li><code class="inline">CouponForm</code>: muestra el motivo cuando el cupón es inválido/expirado sin bloquear el resto de la UI.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Puerta de cobertura</h3>
+      <pre class="code"><code>// backend/jest.config.ts
+export default {
+  coverageThreshold: {
+    global: { statements: 80, branches: 80, functions: 80, lines: 80 },
+  },
+};
+
+// frontend/vitest.config.ts
+export default defineConfig({
+  test: {
+    coverage: { provider: 'v8', thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 } },
+  },
+});</code></pre>
+      <p>Comando único documentado en <span class="filechip">README.md</span>: <code class="inline">npm run test:coverage</code> en cada app, exit code distinto de 0 si no se alcanza el umbral — así se verifica "en consola" durante los 7 minutos de defensa de arquitectura, tal como pide el enunciado.</p>
+    </section>
+
+    <!-- ================= SECTION 13 ================= -->
+    <section class="doc" id="s13">
+      <div class="sec-head"><span class="num">13</span><h2>Gobernanza de IA — guía para docs/ia.md</h2></div>
+      <p class="sec-sub">Contenido mínimo obligatorio, con ejemplos concretos y verificables para este mismo proyecto.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Sección exigida</th><th>Cómo completarla con este proyecto</th></tr></thead>
+          <tbody>
+            <tr><td>Skill / prompt automatizado</td><td>Documentar un prompt estructurado real usado para generar mocks de <code class="inline">DiscountStrategy</code> en Jest (fixtures de carritos con distintas combinaciones categoría/volumen/cupón), incluyendo el prompt exacto y el diff de lo que se aceptó vs. editó.</td></tr>
+            <tr><td>Agente configurado</td><td>Un agente "auditor de cobertura" con la regla explícita: rechazar cualquier PR que baje del 80% o que introduzca <code class="inline">any</code> sin comentario de justificación.</td></tr>
+            <tr><td>% de código sugerido por IA</td><td>Ser específico por capa: p. ej. "80% del boilerplate de DTOs/controladores fue sugerido por IA; el 100% del algoritmo de cascada de descuentos y el tope del 35% fue diseñado y verificado manualmente con los ejemplos numéricos de la §04 de este SDD".</td></tr>
+            <tr><td>2 correcciones concretas a la IA</td><td>Ejemplo 1: la IA sugirió sumar los tres porcentajes (10+5+15=30% flat) en vez de aplicarlos en cascada multiplicativa — se corrigió porque cambia el resultado final en cada carrito con más de un producto. Ejemplo 2: la IA propuso probar el tope del 35% armando un carrito "grande" — se corrigió porque, como se documenta en §04, es matemáticamente inalcanzable con las 3 reglas reales; se cambió la prueba para inyectar un descuento bruto sintético directamente a <code class="inline">applyAbsoluteCap</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 14 ================= -->
+    <section class="doc" id="s14">
+      <div class="sec-head"><span class="num">14</span><h2>Estructura final del monorepo</h2></div>
+      <p class="sec-sub">Mapeo exacto de la estructura exigida por el enunciado a los módulos descritos en este SDD.</p>
+      <pre class="code"><code>examen-ecommerce/
+├── apps/
+│   ├── backend/
+│   │   └── services/
+│   │       ├── api-gateway/               # -> §03, §07, §08
+│   │       │   └── src/
+│   │       │       ├── auth/              # supabase-auth.adapter.ts, supabase-auth.guard.ts
+│   │       │       ├── sse/                # gateway.sse.ts (EventSource + subscribe Redis)
+│   │       │       ├── proxy/              # reenvia a cada servicio interno
+│   │       │       └── main.ts
+│   │       ├── catalog-service/           # -> §02 HU1/HU6, §09
+│   │       │   └── src/{products,stock,categories}/ + prisma/schema.prisma (schema catalog)
+│   │       ├── coupon-service/            # -> §02 HU2/HU7
+│   │       │   └── src/coupons/ + prisma/schema.prisma (schema coupon)
+│   │       ├── discount-service/          # -> §03, §04 (sin DB)
+│   │       │   └── src/{strategies,factories}/
+│   │       ├── order-service/             # -> §02 HU3, §09
+│   │       │   └── src/{orders,checkout.saga.ts,outbox}/ + prisma/schema.prisma (schema order)
+│   │       └── notification-service/      # -> §09
+│   │           └── src/notifications/
+│   └── frontend/
+│       ├── src/
+│       │   ├── components/{ui,cart,checkout,admin}/   # Shadcn + SCSS -> §02 HU1/HU2/HU4/HU5/HU6/HU7
+│       │   ├── state/{cart.store.ts,authStore.ts}      # Observer -> §03
+│       │   ├── api/                                    # cliente tipado hacia api-gateway -> §07
+│       │   └── styles/{_tokens.scss,globals.scss}
+│       └── src/tests/                                  # -> §12
+├── packages/
+│   └── shared-contracts/              # DTOs compartidos entre los 6 servicios y el frontend -> §07
+├── docs/
+│   ├── arquitectura.md                # basado en §01, §03, §04, §09, §10
+│   └── ia.md                          # basado en §13
+├── docker-compose.yml                 # levanta los 6 servicios + Postgres + Redis con un comando
+└── README.md</code></pre>
+    </section>
+
+    <!-- ================= SECTION 15 ================= -->
+    <section class="doc" id="s15">
+      <div class="sec-head"><span class="num">15</span><h2>Checklist final de entrega</h2></div>
+      <p class="sec-sub">Mapeo 1:1 contra la sección 7 del enunciado.</p>
+      <ul class="chk-list">
+        <li>Repositorio público con commits incrementales por HU (HU3 → HU1 → HU2 → HU4, según §02).</li>
+        <li>Backend valida stock y aplica la cascada + tope del 35% (§04), con motor aislado de persistencia (§03).</li>
+        <li>Frontend reactivo con Shadcn/ui + SCSS, desglose de descuentos y alerta persistente del 35% (§02).</li>
+        <li><span class="filechip">docs/arquitectura.md</span> completo con las decisiones de esta sección §01, §03, §04 y los trade-offs de §10.</li>
+        <li><span class="filechip">docs/ia.md</span> completo siguiendo la guía de §13.</li>
+        <li>Cobertura ≥80% verificable con <code class="inline">npm run test:coverage</code> (§12).</li>
+        <li><span class="filechip">README.md</span> con instalación, variables de entorno por servicio (<code class="inline">SUPABASE_URL</code>, <code class="inline">SUPABASE_ANON_KEY</code>, <code class="inline">SUPABASE_SERVICE_ROLE_KEY</code>, <code class="inline">DATABASE_URL</code> por schema, <code class="inline">JWE_SECRET</code>, <code class="inline">REDIS_URL</code>, <code class="inline">INTERNAL_SERVICE_TOKEN</code>) y comandos de prueba.</li>
+      </ul>
+    </section>
+
+    <footer class="doc-footer">
+      SDD Core E-Commerce Checkout · elaborado como guía de implementación para la prueba técnica "Core E-Commerce con Sistema de Descuentos Acumulativos" · v1.0
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  try{
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc-list a'));
+    var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+    if(!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          var id = '#' + entry.target.id;
+          links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === id); });
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ io.observe(s); });
+  }catch(e){}
+})();
+</script>
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+
+</body></html>

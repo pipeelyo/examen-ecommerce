@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Layers, Package, Pencil, Plus, Trash2 } from 'lucide-react'
+import { iconForProduct, optionForIcon } from './productIcons'
 import { toast } from 'sonner'
-import { useCatalogBook } from '@/mocks/catalogBook'
 import type { ProductDraft } from '@/mocks/catalogBook'
 import { useAuthStore } from '@/modules/auth/store'
+import { getProducts } from '@/shared/api/commerce'
+import { ApiError } from '@/shared/api/client'
 import type { ProductDto } from '@/shared/types'
 import { formatUsd, fromCents, toCents } from '@/shared/lib/money'
 import { Button } from '@/shared/ui/Button'
@@ -164,40 +166,70 @@ function StockEditor({
 }
 
 export function ProductDesk() {
-  const products = useCatalogBook((s) => s.products)
+  const [products, setProducts] = useState<ProductDto[]>([])
+  const [loadError, setLoadError] = useState<string | null>(null)
   const actor = useAuthStore((s) => s.email)
   const [editor, setEditor] = useState<ProductDto | 'new' | null>(null)
   const [pendingDelete, setPendingDelete] = useState<ProductDto | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  function save(draft: ProductDraft) {
+  async function refresh() {
+    const data = await getProducts()
+    setProducts(data)
+    setLoadError(null)
+  }
+
+  useEffect(() => {
+    void refresh().catch(() => setLoadError('No se pudo cargar el catálogo'))
+  }, [])
+
+  async function save(draft: ProductDraft) {
     const current = editor === 'new' || editor === null ? undefined : editor
-    persistProduct(draft, actor, current)
-    setEditor(null)
-    const message = current ? `Se actualizó ${draft.name}.` : `Se creó ${draft.name}.`
-    setNotice(message)
-    toast.success(message)
+    try {
+      await persistProduct(draft, actor, current)
+      await refresh()
+      setEditor(null)
+      const message = current ? `Se actualizó ${draft.name}.` : `Se creó ${draft.name}.`
+      setNotice(message)
+      toast.success(message)
+    } catch (err) {
+      const message = err instanceof ApiError ? err.body.message : 'No se pudo guardar la pieza'
+      setNotice(message)
+      toast.error(message)
+    }
   }
 
-  function confirmStock(product: ProductDto, next: number) {
-    persistProduct({ ...product, stock: next }, actor, product)
-    const message = `Stock de ${product.name} confirmado: ${product.stock} → ${next} uds`
-    setNotice(message)
-    toast.success('Stock confirmado', { description: message })
+  async function confirmStock(product: ProductDto, next: number) {
+    try {
+      await persistProduct({ ...product, stock: next }, actor, product)
+      await refresh()
+      const message = `Stock de ${product.name} confirmado: ${product.stock} → ${next} uds`
+      setNotice(message)
+      toast.success('Stock confirmado', { description: message })
+    } catch (err) {
+      const message = err instanceof ApiError ? err.body.message : 'No se pudo ajustar el stock'
+      toast.error(message)
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!pendingDelete) return
-    const result = purgeProduct(pendingDelete.id, actor)
-    setPendingDelete(null)
-    if (!result) return
-    const couponNote =
-      result.couponCodes.length > 0
-        ? ` Cupones desasociados: ${result.couponCodes.join(', ')}.`
-        : ' Ningún cupón apuntaba a esta pieza.'
-    const message = `${result.name} salió del catálogo y de la bolsa.${couponNote}`
-    setNotice(message)
-    toast.success(message)
+    try {
+      const result = await purgeProduct(pendingDelete.id, actor)
+      setPendingDelete(null)
+      if (!result) return
+      await refresh()
+      const couponNote =
+        result.couponCodes.length > 0
+          ? ` Cupones desasociados: ${result.couponCodes.join(', ')}.`
+          : ' Ningún cupón apuntaba a esta pieza.'
+      const message = `${result.name} salió del catálogo y de la bolsa.${couponNote}`
+      setNotice(message)
+      toast.success(message)
+    } catch (err) {
+      const message = err instanceof ApiError ? err.body.message : 'No se pudo eliminar la pieza'
+      toast.error(message)
+    }
   }
 
   return (
@@ -215,6 +247,11 @@ export function ProductDesk() {
       }
       aside={<ProductInsight products={products} />}
     >
+      {loadError ? (
+        <p role="alert" className="shrink-0 px-6 pt-4 text-[0.9375rem] text-danger">
+          {loadError}
+        </p>
+      ) : null}
       {notice ? (
         <p role="status" className="shrink-0 px-6 pt-4 text-[0.9375rem] text-sage">
           {notice}
@@ -232,11 +269,16 @@ export function ProductDesk() {
             </tr>
           </thead>
           <tbody>
-              {products.map((product) => (
+              {products.map((product) => {
+                const icon = optionForIcon(iconForProduct(product.id, product.category))
+                const Icon = icon.Icon
+                return (
                 <tr key={product.id}>
                   <td>
                     <div className="flex items-start gap-2.5">
-                      <Package className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+                      <span aria-label={`Icono ${icon.label}`}>
+                        <Icon className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+                      </span>
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <p className="type-caption mt-0.5">{product.id}</p>
@@ -281,7 +323,8 @@ export function ProductDesk() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )
+              })}
           </tbody>
         </table>
       </TablePane>

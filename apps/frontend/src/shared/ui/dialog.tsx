@@ -10,7 +10,7 @@ export const DialogClose = DialogPrimitive.Close
 export function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
   return (
     <DialogPrimitive.Overlay
-      className={cn('motion-fade fixed inset-0 z-50 bg-ink/40', className)}
+      className={cn('motion-fade fixed inset-0 z-50 bg-ink/55', className)}
       {...props}
     />
   )
@@ -22,7 +22,7 @@ export function DialogContent({ className, children, ...props }: ComponentProps<
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'motion-fade glass fixed inset-x-4 bottom-4 z-50 max-h-[86svh] overflow-y-auto rounded-[1.5rem] p-7 sm:inset-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2',
+          'motion-fade liquidglass fixed inset-x-4 bottom-4 z-50 max-h-[86svh] overflow-y-auto rounded-[1.5rem] p-7 sm:inset-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2',
           className,
         )}
         {...props}

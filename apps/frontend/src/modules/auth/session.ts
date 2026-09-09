@@ -1,1 +1,1 @@
-export { getDemoToken } from './store'
+export { getAdminToken, getDemoToken } from './store'

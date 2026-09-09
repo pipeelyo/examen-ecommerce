@@ -47,3 +47,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 export function getDemoToken(): string | null {
   return useAuthStore.getState().role ? DEMO_BEARER : null
 }
+
+export function getAdminToken(): string | null {
+  if (useAuthStore.getState().role !== 'ADMIN') return null
+  return import.meta.env.VITE_ADMIN_API_TOKEN || 'dev-admin-token'
+}

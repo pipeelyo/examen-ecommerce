@@ -20,6 +20,7 @@ const INSIGHT_COLOR: Record<string, string> = {
   Libros: '#1b8a4a',
   Muebles: '#d49212',
   Hogar: '#1788a0',
+  Juguetería: '#7c3aed',
   Ropa: '#d42a72',
   Vigentes: '#1b8a4a',
   'En pausa': '#d49212',

@@ -15,6 +15,7 @@
 
 :root {
   --glass-bg: rgba(255, 248, 238, 0.55);
+  --liquidglass-bg: rgba(255, 248, 238, 0.96);
   --glass-border: rgba(255, 255, 255, 0.42);
   --glass-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.62),

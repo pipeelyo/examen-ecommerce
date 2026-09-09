@@ -8,6 +8,7 @@ export interface ProductDraft {
   category: string
   price: number
   stock: number
+  icon?: string
 }
 
 function seedCopy(): ProductDto[] {

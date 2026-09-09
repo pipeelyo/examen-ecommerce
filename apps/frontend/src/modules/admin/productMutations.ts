@@ -1,13 +1,30 @@
 import { appendAudit } from '@/mocks/auditBook'
-import { useCatalogBook, type ProductDraft } from '@/mocks/catalogBook'
+import { type ProductDraft } from '@/mocks/catalogBook'
 import { useCouponBook } from '@/mocks/couponBook'
 import { useCartStore } from '@/modules/cart/store'
+import {
+  adjustProductStock,
+  createProduct,
+  deleteProduct,
+  updateProduct,
+} from '@/shared/api/commerce'
 import type { ProductDto } from '@/shared/types'
+import { forgetProductIcon, iconIdForCategory, rememberProductIcon } from './productIcons'
 
-export function persistProduct(draft: ProductDraft, actor: string, current?: ProductDto): ProductDto {
+export async function persistProduct(
+  draft: ProductDraft,
+  actor: string,
+  current?: ProductDto,
+): Promise<ProductDto> {
   if (current) {
-    const updated = useCatalogBook.getState().update(current.id, draft)
-    if (!updated) return current
+    let updated = await updateProduct(current.id, draft)
+    if (draft.stock !== current.stock) {
+      const delta = draft.stock - current.stock
+      if (delta !== 0) {
+        updated = await adjustProductStock(current.id, delta)
+      }
+    }
+    rememberProductIcon(updated.id, draft.icon ?? iconIdForCategory(updated.category))
     useCartStore.getState().syncProduct(updated)
     appendAudit({
       entity_name: 'products',
@@ -19,7 +36,8 @@ export function persistProduct(draft: ProductDraft, actor: string, current?: Pro
     })
     return updated
   }
-  const created = useCatalogBook.getState().add(draft)
+  const created = await createProduct(draft)
+  rememberProductIcon(created.id, draft.icon ?? iconIdForCategory(created.category))
   appendAudit({
     entity_name: 'products',
     operation: 'INSERT',
@@ -31,9 +49,12 @@ export function persistProduct(draft: ProductDraft, actor: string, current?: Pro
   return created
 }
 
-export function purgeProduct(productId: string, actor: string): { name: string; couponCodes: string[] } | undefined {
-  const removed = useCatalogBook.getState().remove(productId)
-  if (!removed) return undefined
+export async function purgeProduct(
+  productId: string,
+  actor: string,
+): Promise<{ name: string; couponCodes: string[] } | undefined> {
+  const removed = await deleteProduct(productId)
+  forgetProductIcon(productId)
   const detached = useCouponBook.getState().detachProduct(productId)
   useCartStore.getState().remove(productId)
   appendAudit({

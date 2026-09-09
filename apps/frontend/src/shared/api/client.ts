@@ -1,4 +1,4 @@
-import { getDemoToken } from '@/modules/auth/session'
+import { getAdminToken, getDemoToken } from '@/modules/auth/session'
 import { mocksReady } from '@/mocks/ready'
 import type { ApiErrorDto } from '@/shared/types'
 
@@ -26,6 +26,11 @@ function needsAuth(path: string, method: string): boolean {
   return false
 }
 
+function needsAdminToken(path: string, method: string): boolean {
+  if (!path.startsWith('/api/v1/products')) return false
+  return method === 'POST' || method === 'PATCH' || method === 'DELETE'
+}
+
 async function waitForMocks(): Promise<void> {
   if (import.meta.env.VITE_USE_MOCKS !== 'true') return
   await Promise.race([
@@ -48,6 +53,10 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   const token = getDemoToken()
   if (token && needsAuth(path, method)) {
     headers.set('Authorization', `Bearer ${token}`)
+  }
+  if (needsAdminToken(path, method)) {
+    const adminToken = getAdminToken()
+    if (adminToken) headers.set('X-Admin-Token', adminToken)
   }
 
   const response = await fetch(`${apiBase()}${path}`, { ...init, headers })

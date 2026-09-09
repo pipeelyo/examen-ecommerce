@@ -13,6 +13,39 @@ export interface CouponValidDto {
   discountPct?: number
 }
 
+export type CouponScope = 'GLOBAL' | 'CATEGORY'
+
+/** Shape admin de coupon-service (GET/POST/PATCH /admin/coupons vía api-gateway). */
+export interface CouponDto {
+  id: string
+  code: string
+  label: string
+  scope: CouponScope
+  categoryName: string | null
+  discountPercent: number
+  active: boolean
+  validFrom: string | null
+  validTo: string | null
+}
+
+export interface CreateCouponDto {
+  code: string
+  label: string
+  scope: CouponScope
+  categoryName?: string
+  discountPercent: number
+  validFrom?: string
+  validTo?: string
+}
+
+export interface UpdateCouponDto {
+  label?: string
+  active?: boolean
+  discountPercent?: number
+  validFrom?: string | null
+  validTo?: string | null
+}
+
 export interface CartItemInputDto {
   productId: string
   quantity: number

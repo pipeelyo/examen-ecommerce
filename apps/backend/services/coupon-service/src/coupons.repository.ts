@@ -28,6 +28,18 @@ export interface AvailableCoupon {
   discountPercent: number;
 }
 
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  label: string;
+  scope: CouponScope;
+  categoryName: string | null;
+  discountPercent: number;
+  active: boolean;
+  validFrom: Date | null;
+  validTo: Date | null;
+}
+
 const prisma = new PrismaClient();
 
 @Injectable()
@@ -64,6 +76,25 @@ export class CouponsRepository {
         discountPercent: true,
       },
     }) as unknown as Promise<AvailableCoupon[]>;
+  }
+
+  async listAll(): Promise<AdminCoupon[]> {
+    const rows = await prisma.coupon.findMany({ orderBy: { code: "asc" } });
+    return rows.map((row) => ({
+      id: row.id,
+      code: row.code,
+      label: row.label,
+      scope: row.scope as CouponScope,
+      categoryName: row.categoryName,
+      discountPercent: row.discountPercent,
+      active: row.active,
+      validFrom: row.validFrom,
+      validTo: row.validTo,
+    }));
+  }
+
+  async remove(id: string): Promise<void> {
+    await prisma.coupon.delete({ where: { id } });
   }
 
   async create(input: CreateCouponInput) {

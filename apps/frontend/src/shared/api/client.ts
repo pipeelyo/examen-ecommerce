@@ -27,8 +27,16 @@ function needsAuth(path: string, method: string): boolean {
 }
 
 function needsAdminToken(path: string, method: string): boolean {
-  if (!path.startsWith('/api/v1/products')) return false
-  return method === 'POST' || method === 'PATCH' || method === 'DELETE'
+  if (path.startsWith('/api/v1/products')) {
+    return method === 'POST' || method === 'PATCH' || method === 'DELETE'
+  }
+  if (path.startsWith('/api/v1/coupons')) {
+    // /api/v1/coupons (bare) es admin en GET (listar todo) y POST (crear);
+    // /api/v1/coupons/available y /api/v1/coupons/:code siguen publicos.
+    if (path === '/api/v1/coupons') return true
+    return method === 'PATCH' || method === 'DELETE'
+  }
+  return false
 }
 
 async function waitForMocks(): Promise<void> {

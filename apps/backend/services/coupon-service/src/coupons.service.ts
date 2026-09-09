@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import {
   CouponsRepository,
+  type AdminCoupon,
   type AvailableCoupon,
   type CreateCouponInput,
   type UpdateCouponInput,
@@ -23,11 +24,19 @@ export class CouponsService {
     return this.repository.listAvailable(now);
   }
 
+  listAll(): Promise<AdminCoupon[]> {
+    return this.repository.listAll();
+  }
+
   create(input: CreateCouponInput) {
     return this.repository.create(input);
   }
 
   update(id: string, input: UpdateCouponInput) {
     return this.repository.update(id, input);
+  }
+
+  remove(id: string): Promise<void> {
+    return this.repository.remove(id);
   }
 }

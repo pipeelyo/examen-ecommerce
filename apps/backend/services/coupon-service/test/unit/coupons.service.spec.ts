@@ -7,8 +7,10 @@ function fakeRepository(overrides: Partial<CouponsRepository> = {}): CouponsRepo
   return {
     findByCode: vi.fn().mockResolvedValue(null),
     listAvailable: vi.fn().mockResolvedValue([]),
+    listAll: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
+    remove: vi.fn(),
     ...overrides,
   } as unknown as CouponsRepository;
 }
@@ -87,5 +89,28 @@ describe("CouponsService", () => {
     service.update("coupon-id", { active: false });
 
     expect(repo.update).toHaveBeenCalledWith("coupon-id", { active: false });
+  });
+
+  it("listAll delega en el repositorio (sin filtrar por vigencia, a diferencia de listAvailable)", async () => {
+    const repo = fakeRepository({
+      listAll: vi.fn().mockResolvedValue([
+        { id: "c1", code: "EXPIRED2025", label: "vencido", scope: "GLOBAL", categoryName: null, discountPercent: 20, active: true, validFrom: null, validTo: null },
+      ]),
+    });
+    const service = new CouponsService(repo);
+
+    const result = await service.listAll();
+
+    expect(repo.listAll).toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+  });
+
+  it("remove delega en el repositorio con el id", () => {
+    const repo = fakeRepository();
+    const service = new CouponsService(repo);
+
+    service.remove("coupon-id");
+
+    expect(repo.remove).toHaveBeenCalledWith("coupon-id");
   });
 });

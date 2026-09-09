@@ -1,8 +1,13 @@
 import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { CouponRecord } from '@/mocks/seed'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/ui/Button'
+
+export interface CalendarCoupon {
+  code: string
+  active: boolean
+  validTo: string
+}
 
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'] as const
 const TONES = ['#1b8a4a', '#c45c32', '#1788a0', '#d49212', '#d42a72'] as const
@@ -15,8 +20,8 @@ function toYmd(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function expireYmd(coupon: CouponRecord): string {
-  return coupon.expiresAt.slice(0, 10)
+function expireYmd(coupon: CalendarCoupon): string {
+  return coupon.validTo.slice(0, 10)
 }
 
 function shiftMonth(year: number, month: number, delta: number) {
@@ -49,11 +54,11 @@ function toneFor(index: number): string {
   return TONES[index % TONES.length] ?? TONES[0]
 }
 
-function coversDay(coupon: CouponRecord, dayYmd: string, todayYmd: string): boolean {
+function coversDay(coupon: CalendarCoupon, dayYmd: string, todayYmd: string): boolean {
   return dayYmd >= todayYmd && dayYmd <= expireYmd(coupon)
 }
 
-export function CouponCalendar({ coupons }: { coupons: CouponRecord[] }) {
+export function CouponCalendar({ coupons }: { coupons: CalendarCoupon[] }) {
   const today = new Date()
   const todayYmd = toYmd(today)
   const [cursor, setCursor] = useState({ year: today.getFullYear(), month: today.getMonth() })

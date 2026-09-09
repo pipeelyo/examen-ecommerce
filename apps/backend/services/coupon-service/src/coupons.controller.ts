@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   NotFoundException,
@@ -45,6 +46,12 @@ export class CouponsController {
     return this.coupons.resolve(body.code);
   }
 
+  @Get("admin/coupons")
+  @UseGuards(InternalTokenGuard)
+  listAll() {
+    return this.coupons.listAll();
+  }
+
   @Post("admin/coupons")
   @UseGuards(InternalTokenGuard)
   create(@Body() body: CreateCouponInput) {
@@ -55,5 +62,11 @@ export class CouponsController {
   @UseGuards(InternalTokenGuard)
   update(@Param("id") id: string, @Body() body: UpdateCouponInput) {
     return this.coupons.update(id, body);
+  }
+
+  @Delete("admin/coupons/:id")
+  @UseGuards(InternalTokenGuard)
+  remove(@Param("id") id: string) {
+    return this.coupons.remove(id);
   }
 }

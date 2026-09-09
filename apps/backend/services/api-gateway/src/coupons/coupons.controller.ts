@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { AdminGuard } from "../common/admin.guard";
 import { forward } from "../common/downstream";
@@ -13,6 +13,12 @@ function relay(res: Response, result: { status: number; body: unknown }) {
 
 @Controller("coupons")
 export class CouponsController {
+  @Get()
+  @UseGuards(AdminGuard)
+  async listAll(@Res() res: Response) {
+    relay(res, await forward(`${COUPON_URL()}/admin/coupons`, { method: "GET", headers: adminHeaders() }));
+  }
+
   @Get("available")
   async available(@Res() res: Response) {
     relay(res, await forward(`${COUPON_URL()}/available`, { method: "GET", headers: internalHeaders() }));
@@ -45,5 +51,11 @@ export class CouponsController {
       res,
       await forward(`${COUPON_URL()}/admin/coupons/${id}`, { method: "PATCH", headers: adminHeaders(), body }),
     );
+  }
+
+  @Delete(":id")
+  @UseGuards(AdminGuard)
+  async remove(@Param("id") id: string, @Res() res: Response) {
+    relay(res, await forward(`${COUPON_URL()}/admin/coupons/${id}`, { method: "DELETE", headers: adminHeaders() }));
   }
 }

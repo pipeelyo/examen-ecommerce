@@ -2,9 +2,12 @@ import { apiRequest } from './client'
 import type {
   CheckoutRequestDto,
   CheckoutResponseDto,
+  CouponDto,
   CouponValidDto,
+  CreateCouponDto,
   OrderDto,
   ProductDto,
+  UpdateCouponDto,
 } from '@/shared/types'
 import type { ProductDraft } from '@/mocks/catalogBook'
 import { displayCategoryName, storageCategoryName } from '@/modules/catalog/categories'
@@ -86,6 +89,38 @@ async function resolveCategoryId(displayName: string): Promise<string> {
 
 export function getCoupon(code: string): Promise<CouponValidDto> {
   return apiRequest(`/api/v1/coupons/${encodeURIComponent(code)}`)
+}
+
+function withDisplayCategory(coupon: CouponDto): CouponDto {
+  return coupon.categoryName ? { ...coupon, categoryName: displayCategoryName(coupon.categoryName) } : coupon
+}
+
+export async function getCoupons(): Promise<CouponDto[]> {
+  const rows = await apiRequest<CouponDto[]>('/api/v1/coupons')
+  return rows.map(withDisplayCategory)
+}
+
+export async function createCoupon(input: CreateCouponDto): Promise<CouponDto> {
+  const created = await apiRequest<CouponDto>('/api/v1/coupons', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...input,
+      categoryName: input.categoryName ? storageCategoryName(input.categoryName) : undefined,
+    }),
+  })
+  return withDisplayCategory(created)
+}
+
+export async function updateCoupon(id: string, input: UpdateCouponDto): Promise<CouponDto> {
+  const updated = await apiRequest<CouponDto>(`/api/v1/coupons/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+  return withDisplayCategory(updated)
+}
+
+export function deleteCoupon(id: string): Promise<void> {
+  return apiRequest(`/api/v1/coupons/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 export function previewCheckout(body: CheckoutRequestDto): Promise<CheckoutResponseDto> {

@@ -34,8 +34,9 @@ export function ProductFormFields({ product, onCancel, onSave }: ProductFormFiel
       .then((rows) => {
         setCategories(rows)
         if (!product) {
-          setCategory((current) => current || rows[0]?.name || '')
-          if (rows[0]) setIcon((current) => (current === 'cpu' ? iconIdForCategory(rows[0].name) : current))
+          const first = rows[0]
+          setCategory((current) => current || first?.name || '')
+          if (first) setIcon((current) => (current === 'cpu' ? iconIdForCategory(first.name) : current))
         }
       })
       .catch(() => setError('No se pudieron cargar las categorías'))

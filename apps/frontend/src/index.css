@@ -106,7 +106,8 @@ body::before {
   z-index: 1;
 }
 
-.btn-glass:hover::before {
+.btn-glass:hover::before,
+.btn-glass:active::before {
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -126,7 +127,8 @@ body::before {
   background: color-mix(in srgb, var(--color-sage) 14%, rgba(255, 255, 255, 0.05));
 }
 
-.btn-glass[data-tone='sage']:hover::before {
+.btn-glass[data-tone='sage']:hover::before,
+.btn-glass[data-tone='sage']:active::before {
   background: color-mix(in srgb, var(--color-sage) 22%, rgba(255, 255, 255, 0.08));
 }
 

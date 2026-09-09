@@ -154,7 +154,7 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.875rem] transition-[color,background-color,border-color] duration-200 ease-out max-md:min-h-11',
+        'inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.875rem] transition-[color,background-color,border-color,transform] duration-200 ease-out active:scale-95 max-md:min-h-11',
         active ? 'bg-ink text-card' : 'border border-line bg-card text-muted hover:text-ink',
       )}
     >

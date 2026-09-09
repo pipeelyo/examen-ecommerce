@@ -118,8 +118,8 @@ export function ProductFormFields({ product, onCancel, onSave }: ProductFormFiel
               key={option.id}
               type="button"
               className={cn(
-                'btn-glass flex size-10 items-center justify-center rounded-full',
-                icon === option.id && 'ring-2 ring-copper',
+                'flex size-10 items-center justify-center rounded-full transition-colors duration-150',
+                icon === option.id ? 'bg-ink text-card' : 'btn-glass',
               )}
               aria-label={`Icono ${option.label}`}
               aria-pressed={icon === option.id}

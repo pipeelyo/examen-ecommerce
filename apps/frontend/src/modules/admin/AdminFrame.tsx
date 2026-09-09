@@ -51,7 +51,13 @@ export function ModuleStage({
         </div>
         {action}
       </header>
-      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden max-md:grid-rows-[auto_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.618fr)]">
+      {/* max-md: la fila del aside usaba "auto" — sin tope, el resumen
+          (stats + calendario/torta) podia crecer hasta comerse toda la
+          altura de la seccion y dejar la tabla en 0px (minmax(0,1fr) no
+          tiene de donde sacar espacio). Con un tope de 45% + el
+          overflow-y-auto que el aside ya tenia, el resumen larga scroll
+          propio en vez de empujar la tabla fuera de pantalla. */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden max-md:grid-rows-[minmax(0,45%)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.618fr)]">
         <aside
           className={cn(
             'flex min-h-0 flex-col overflow-y-auto border-white/30 p-6 max-md:p-4 lg:border-r',

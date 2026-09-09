@@ -1,0 +1,1 @@
+export { getDemoToken } from './store'

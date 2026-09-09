@@ -1,0 +1,234 @@
+:root {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 160ms;
+  --motion-med: 320ms;
+}
+
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes motion-grow-y {
+  from {
+    opacity: 0.4;
+    transform: scaleY(0.18);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.motion-stage,
+.motion-rise {
+  animation: motion-rise var(--motion-med) var(--motion-ease) both;
+}
+
+.motion-fade {
+  animation: motion-fade var(--motion-fast) ease-out both;
+}
+
+.motion-stagger > * {
+  animation: motion-rise 380ms var(--motion-ease) both;
+}
+
+.motion-stagger > *:nth-child(1) {
+  animation-delay: 40ms;
+}
+
+.motion-stagger > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.motion-stagger > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.motion-stagger > *:nth-child(4) {
+  animation-delay: 160ms;
+}
+
+.motion-stagger > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.motion-stagger > *:nth-child(n + 6) {
+  animation-delay: 240ms;
+}
+
+.motion-grow-y {
+  transform-origin: top center;
+  animation: motion-grow-y 480ms var(--motion-ease) both;
+}
+
+.atelier-table tbody tr {
+  animation: motion-rise 340ms var(--motion-ease) both;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.atelier-table tbody tr:nth-child(1) {
+  animation-delay: 70ms;
+}
+
+.atelier-table tbody tr:nth-child(2) {
+  animation-delay: 95ms;
+}
+
+.atelier-table tbody tr:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.atelier-table tbody tr:nth-child(4) {
+  animation-delay: 145ms;
+}
+
+.atelier-table tbody tr:nth-child(5) {
+  animation-delay: 170ms;
+}
+
+.atelier-table tbody tr:nth-child(6) {
+  animation-delay: 195ms;
+}
+
+.atelier-table tbody tr:nth-child(7) {
+  animation-delay: 220ms;
+}
+
+.atelier-table tbody tr:nth-child(8) {
+  animation-delay: 245ms;
+}
+
+.atelier-table tbody tr:nth-child(9) {
+  animation-delay: 270ms;
+}
+
+.atelier-table tbody tr:nth-child(n + 10) {
+  animation-delay: 295ms;
+}
+
+.atelier-table tbody tr:hover {
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
+}
+
+.bag-dock {
+  --dock-open: min(36rem, 52cqi);
+  width: 0;
+  overflow: hidden;
+  border-left: 1px solid transparent;
+  pointer-events: none;
+  transition:
+    width 380ms var(--motion-ease),
+    border-color 380ms var(--motion-ease);
+}
+
+.bag-dock[data-open='true'] {
+  width: var(--dock-open);
+  border-left-color: rgb(255 255 255 / 0.3);
+  pointer-events: auto;
+}
+
+.cart-line-enter {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: cart-line-open 420ms var(--motion-ease);
+}
+
+.cart-line-clip {
+  min-height: 0;
+  overflow: hidden;
+  animation: cart-line-in 400ms var(--motion-ease);
+}
+
+.product-row[data-bump] {
+  animation: product-row-bump 620ms var(--motion-ease);
+}
+
+.cart-line-body[data-bump] {
+  animation: cart-line-bump 620ms var(--motion-ease);
+}
+
+.cart-line-body[data-bump] .cart-line-qty {
+  animation: cart-qty-pop 420ms var(--motion-ease);
+}
+
+@keyframes product-row-bump {
+  0% {
+    background-color: color-mix(in srgb, var(--color-copper) 22%, var(--color-card));
+  }
+  100% {
+    background-color: color-mix(in srgb, var(--color-card) 55%, transparent);
+  }
+}
+
+@keyframes cart-line-bump {
+  0% {
+    background-color: color-mix(in srgb, var(--color-copper) 22%, transparent);
+    box-shadow: inset 3px 0 0 var(--color-copper);
+    transform: translateX(-0.35rem);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 transparent;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cart-qty-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+    color: var(--color-copper);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cart-line-open {
+  from {
+    grid-template-rows: 0fr;
+  }
+}
+
+@keyframes cart-line-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-0.7rem, 0.2rem, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-stage,
+  .motion-rise,
+  .motion-fade,
+  .motion-stagger > *,
+  .motion-grow-y,
+  .atelier-table tbody tr,
+  .bag-dock,
+  .cart-line-enter,
+  .cart-line-clip,
+  .cart-line-body[data-bump],
+  .cart-line-body[data-bump] .cart-line-qty,
+  .product-row[data-bump] {
+    animation: none;
+    transition: none;
+  }
+}

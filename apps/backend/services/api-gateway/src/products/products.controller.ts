@@ -13,6 +13,7 @@ import type { Response } from "express";
 import { AdminGuard } from "../common/admin.guard";
 import { forward } from "../common/downstream";
 import { adminHeaders, internalHeaders } from "../common/headers";
+import { toProductDto, type CatalogProductRecord } from "./product.mapper";
 
 const CATALOG_URL = () => process.env.CATALOG_SERVICE_URL ?? "http://catalog-service:3002";
 
@@ -24,12 +25,22 @@ function relay(res: Response, result: { status: number; body: unknown }) {
 export class ProductsController {
   @Get("products")
   async list(@Res() res: Response) {
-    relay(res, await forward(`${CATALOG_URL()}/products`, { method: "GET", headers: internalHeaders() }));
+    const { status, body } = await forward(`${CATALOG_URL()}/products`, { method: "GET", headers: internalHeaders() });
+    if (status !== 200) {
+      relay(res, { status, body });
+      return;
+    }
+    res.status(200).json((body as CatalogProductRecord[]).map(toProductDto));
   }
 
   @Get("products/:id")
   async getById(@Param("id") id: string, @Res() res: Response) {
-    relay(res, await forward(`${CATALOG_URL()}/products/${id}`, { method: "GET", headers: internalHeaders() }));
+    const { status, body } = await forward(`${CATALOG_URL()}/products/${id}`, { method: "GET", headers: internalHeaders() });
+    if (status !== 200) {
+      relay(res, { status, body });
+      return;
+    }
+    res.status(200).json(toProductDto(body as CatalogProductRecord));
   }
 
   @Get("categories")

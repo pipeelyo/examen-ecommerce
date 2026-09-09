@@ -3,6 +3,7 @@ import type { Response } from "express";
 import { AdminGuard } from "../common/admin.guard";
 import { forward } from "../common/downstream";
 import { adminHeaders, internalHeaders } from "../common/headers";
+import { toCouponValidDto, type ResolveCouponResult } from "./coupon.mapper";
 
 const COUPON_URL = () => process.env.COUPON_SERVICE_URL ?? "http://coupon-service:3003";
 
@@ -19,7 +20,16 @@ export class CouponsController {
 
   @Get(":code")
   async checkCode(@Param("code") code: string, @Res() res: Response) {
-    relay(res, await forward(`${COUPON_URL()}/${code}`, { method: "GET", headers: internalHeaders() }));
+    const { status, body } = await forward(`${COUPON_URL()}/${code}`, { method: "GET", headers: internalHeaders() });
+    if (status === 404) {
+      res.status(404).json({ code: "NOT_FOUND", message: `Cupón ${code} no existe` });
+      return;
+    }
+    if (status !== 200) {
+      relay(res, { status, body });
+      return;
+    }
+    res.status(200).json(toCouponValidDto(code, body as ResolveCouponResult));
   }
 
   @Post()

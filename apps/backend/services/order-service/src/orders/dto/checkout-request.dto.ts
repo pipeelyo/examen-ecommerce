@@ -7,14 +7,15 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
+  MinLength,
   ValidateNested,
 } from "class-validator";
 
 export class CartItemDto {
-  @ApiProperty({ format: "uuid" })
-  @IsUUID()
+  @ApiProperty({ example: "p-laptop" })
+  @IsString()
+  @MinLength(1)
   productId!: string;
 
   @ApiProperty({ example: 1, minimum: 1 })

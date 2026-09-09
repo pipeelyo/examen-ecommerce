@@ -12,6 +12,7 @@ export default defineConfig({
         "src/health.controller.ts",
         "src/common/downstream.ts",
         "src/checkout/checkout.controller.ts",
+        "src/checkout/dto/checkout-request.dto.ts",
         "src/products/products.controller.ts",
         "src/coupons/coupons.controller.ts",
         "src/status/status.controller.ts",

@@ -40,13 +40,13 @@ describe("CouponsService", () => {
     });
   });
 
-  it("resolve retorna INVALID_COUPON cuando el repositorio no encuentra el codigo", async () => {
+  it("resolve retorna NOT_FOUND cuando el repositorio no encuentra el codigo", async () => {
     const repo = fakeRepository();
     const service = new CouponsService(repo);
 
     const result = await service.resolve("FAKE2026");
 
-    expect(result).toEqual({ applied: false, reason: "INVALID_COUPON" });
+    expect(result).toEqual({ applied: false, reason: "NOT_FOUND" });
   });
 
   it("listAvailable delega en el repositorio con la fecha actual", async () => {

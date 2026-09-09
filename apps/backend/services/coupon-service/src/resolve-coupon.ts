@@ -1,6 +1,6 @@
 export type CouponScope = "GLOBAL" | "CATEGORY";
 
-export type CouponReason = "INVALID_COUPON" | "EXPIRED_COUPON" | "NOT_YET_VALID";
+export type CouponReason = "NOT_FOUND" | "INVALID_COUPON" | "EXPIRED_COUPON" | "NOT_YET_VALID";
 
 export interface CouponRecord {
   code: string;
@@ -33,7 +33,7 @@ export function resolveCoupon(
   now: Date,
 ): ResolveCouponResult {
   if (!record) {
-    return { applied: false, reason: "INVALID_COUPON" };
+    return { applied: false, reason: "NOT_FOUND" };
   }
   if (!record.active) {
     return { applied: false, reason: "INVALID_COUPON" };

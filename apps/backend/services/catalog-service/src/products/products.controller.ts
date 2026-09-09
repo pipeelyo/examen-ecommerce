@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -40,7 +39,7 @@ export class ProductsController {
   @ApiOperation({
     summary: "Producto por id, incluso si está inactivo (soft delete)",
   })
-  getById(@Param("id", new ParseUUIDPipe()) id: string) {
+  getById(@Param("id") id: string) {
     return this.products.getById(id);
   }
 
@@ -57,7 +56,7 @@ export class ProductsController {
   @ApiHeader({ name: "X-User-Role", required: true, description: "ADMIN" })
   @ApiOperation({ summary: "Editar nombre/precio/categoría, sin tocar stock" })
   update(
-    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("id") id: string,
     @Body() dto: UpdateProductDto,
   ) {
     return this.products.update(id, dto);
@@ -68,7 +67,7 @@ export class ProductsController {
   @ApiHeader({ name: "X-User-Role", required: true, description: "ADMIN" })
   @ApiOperation({ summary: "Ajuste atómico de stock { delta }" })
   adjustStock(
-    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("id") id: string,
     @Body() dto: AdjustStockDto,
   ) {
     return this.products.adjustStock(id, dto.delta);
@@ -78,7 +77,7 @@ export class ProductsController {
   @UseGuards(RolesGuard)
   @ApiHeader({ name: "X-User-Role", required: true, description: "ADMIN" })
   @ApiOperation({ summary: "Soft delete (active=false)" })
-  softDelete(@Param("id", new ParseUUIDPipe()) id: string) {
+  softDelete(@Param("id") id: string) {
     return this.products.softDelete(id);
   }
 }

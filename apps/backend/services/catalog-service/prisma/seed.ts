@@ -23,6 +23,11 @@ async function main() {
     update: {},
     create: { name: "Libros" },
   });
+  const muebles = await prisma.category.upsert({
+    where: { name: "Muebles" },
+    update: {},
+    create: { name: "Muebles" },
+  });
 
   const products: Array<{
     sku: string;
@@ -46,6 +51,36 @@ async function main() {
   for (const product of products) {
     await prisma.product.upsert({
       where: { sku: product.sku },
+      update: {
+        name: product.name,
+        unitPrice: product.unitPrice,
+        categoryId: product.categoryId,
+        stock: product.stock,
+        active: true,
+      },
+      create: product,
+    });
+  }
+
+  // Ids fijos exigidos por el CONTRACT.md del front (docs/plans/CONTRACT.md) —
+  // el front los referencia literalmente, no pueden ser UUID generados.
+  const contractProducts: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    unitPrice: number;
+    categoryId: string;
+    stock: number;
+  }> = [
+    { id: "p-laptop", sku: "CONTRACT-LAPTOP", name: "Laptop", unitPrice: 700, categoryId: tecnologia.id, stock: 10 },
+    { id: "p-mouse", sku: "CONTRACT-MOUSE", name: "Mouse", unitPrice: 50, categoryId: tecnologia.id, stock: 20 },
+    { id: "p-libro", sku: "CONTRACT-LIBRO", name: "Libro", unitPrice: 30, categoryId: libros.id, stock: 15 },
+    { id: "p-silla", sku: "CONTRACT-SILLA", name: "Silla", unitPrice: 349, categoryId: muebles.id, stock: 0 },
+  ];
+
+  for (const product of contractProducts) {
+    await prisma.product.upsert({
+      where: { id: product.id },
       update: {
         name: product.name,
         unitPrice: product.unitPrice,

@@ -60,15 +60,25 @@ describe("StockService.reserveStock / releaseStock", () => {
     expect(db.products.get(LAPTOP)?.stock).toBe(0);
   });
 
-  it("payload corrupto (quantity -1 o productId no UUID) rechaza antes de tocar stock", async () => {
+  it("payload corrupto (quantity -1 o productId vacio) rechaza antes de tocar stock", async () => {
     const { service, db } = setup();
     await expect(
       service.reserveStock([{ productId: LAPTOP, quantity: -1 }]),
     ).rejects.toBeInstanceOf(BadRequestException);
     await expect(
-      service.reserveStock([{ productId: "no-uuid", quantity: 1 }]),
+      service.reserveStock([{ productId: "", quantity: 1 }]),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(db.products.get(LAPTOP)?.stock).toBe(10);
+  });
+
+  it("productId no-UUID (id fijo tipo contrato) es aceptado si es un string valido", async () => {
+    const db = new MemDb();
+    const tech = db.addCategory("Tecnologia");
+    db.addProduct({ id: "p-laptop", sku: "CONTRACT-LAPTOP", name: "Laptop", unitPrice: 700, categoryId: tech.id, stock: 10 });
+    const service = new StockService(new ProductsRepository(createPrismaStub(db)));
+
+    await service.reserveStock([{ productId: "p-laptop", quantity: 2 }]);
+    expect(db.products.get("p-laptop")?.stock).toBe(8);
   });
 
   it("dos reservas concurrentes por el mismo stock: una gana, la otra falla, stock nunca negativo", async () => {

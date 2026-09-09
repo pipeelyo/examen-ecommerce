@@ -4,14 +4,16 @@ import {
   ArrayMinSize,
   IsArray,
   IsInt,
-  IsUUID,
+  IsString,
   Min,
+  MinLength,
   ValidateNested,
 } from "class-validator";
 
 export class StockItemDto {
-  @ApiProperty({ format: "uuid" })
-  @IsUUID()
+  @ApiProperty({ example: "p-laptop" })
+  @IsString()
+  @MinLength(1)
   productId!: string;
 
   @ApiProperty({ example: 1, minimum: 1 })

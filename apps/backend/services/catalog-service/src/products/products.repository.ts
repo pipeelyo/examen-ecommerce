@@ -6,7 +6,6 @@ import {
 import { InsufficientStockException } from "../common/insufficient-stock.exception";
 import { PrismaService } from "../prisma.service";
 import {
-  UUID_RE,
   type CreateProductInput,
   type ProductRecord,
   type StockItemInput,
@@ -196,8 +195,8 @@ export class ProductsRepository {
       throw new BadRequestException("items es obligatorio");
     }
     for (const item of items) {
-      if (!UUID_RE.test(item.productId)) {
-        throw new BadRequestException("productId debe ser un UUID");
+      if (typeof item.productId !== "string" || item.productId.length === 0) {
+        throw new BadRequestException("productId es obligatorio");
       }
       if (!Number.isInteger(item.quantity) || item.quantity < 1) {
         throw new BadRequestException("quantity debe ser un entero >= 1");

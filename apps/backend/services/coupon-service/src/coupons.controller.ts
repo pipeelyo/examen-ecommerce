@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -30,8 +31,12 @@ export class CouponsController {
   }
 
   @Get(":code")
-  checkCode(@Param("code") code: string) {
-    return this.coupons.resolve(code);
+  async checkCode(@Param("code") code: string) {
+    const result = await this.coupons.resolve(code);
+    if (!result.applied && result.reason === "NOT_FOUND") {
+      throw new NotFoundException({ code: "NOT_FOUND", message: `Cupón ${code} no existe` });
+    }
+    return result;
   }
 
   @Post("internal/coupons/resolve")

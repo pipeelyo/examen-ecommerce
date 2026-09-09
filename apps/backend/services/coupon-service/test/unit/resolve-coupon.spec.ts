@@ -18,9 +18,9 @@ function record(overrides: Partial<CouponRecord> = {}): CouponRecord {
 }
 
 describe("resolveCoupon", () => {
-  it("retorna INVALID_COUPON si el registro no existe", () => {
+  it("retorna NOT_FOUND si el registro no existe", () => {
     const result = resolveCoupon(null, NOW);
-    expect(result).toEqual({ applied: false, reason: "INVALID_COUPON" });
+    expect(result).toEqual({ applied: false, reason: "NOT_FOUND" });
   });
 
   it("retorna INVALID_COUPON si el cupon esta inactivo", () => {

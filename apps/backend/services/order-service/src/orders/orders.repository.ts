@@ -19,6 +19,8 @@ export interface GuestInfo {
 export interface CreateOrderInput {
   userId: string | null;
   guestInfo?: GuestInfo;
+  customerEmail?: string | null;
+  couponCode?: string | null;
   breakdown: CheckoutBreakdown;
   lines: OrderLineSnapshot[];
 }
@@ -49,6 +51,8 @@ export class OrdersRepository {
           guestEmail: input.guestInfo?.email,
           guestPhone: input.guestInfo?.phone,
           guestAddress: input.guestInfo?.address,
+          customerEmail: input.customerEmail ?? input.guestInfo?.email ?? null,
+          couponCode: input.couponCode ?? null,
           originalSubtotal: input.breakdown.originalSubtotal,
           categoryDiscountAmount: input.breakdown.breakdown.category.amount,
           volumeDiscountAmount: input.breakdown.breakdown.volume.amount,
@@ -89,6 +93,21 @@ export class OrdersRepository {
         createdAt: order.createdAt,
       };
     });
+  }
+
+  /**
+   * HU7 (canje unico): un mismo cliente no puede aplicar el mismo cupon en
+   * mas de una orden confirmada. Solo existen filas en `orders` para
+   * checkouts que ya completaron la saga completa (ver CheckoutSaga.run),
+   * asi que basta con buscar una coincidencia — no hace falta filtrar por
+   * status.
+   */
+  async hasRedeemedCoupon(customerEmail: string, couponCode: string): Promise<boolean> {
+    const existing = await prisma.order.findFirst({
+      where: { customerEmail, couponCode },
+      select: { id: true },
+    });
+    return existing !== null;
   }
 
   async findById(id: string) {

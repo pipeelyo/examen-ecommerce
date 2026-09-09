@@ -60,6 +60,7 @@ function fakeRepository(overrides: Partial<OrdersRepository> = {}): OrdersReposi
       createdAt: new Date("2026-06-15"),
     }),
     findById: vi.fn(),
+    hasRedeemedCoupon: vi.fn().mockResolvedValue(false),
     ...overrides,
   } as unknown as OrdersRepository;
 }
@@ -214,6 +215,83 @@ describe("CheckoutSaga", () => {
 
     expect(repository.createOrder).toHaveBeenCalledWith(
       expect.objectContaining({ userId: null, guestInfo }),
+    );
+  });
+
+  it("cupon valido y primer canje del cliente: se aplica y se persiste el codigo", async () => {
+    const catalog = fakeCatalog();
+    const coupons = fakeCoupons({
+      resolve: vi.fn().mockResolvedValue({
+        applied: true,
+        coupon: { scope: "GLOBAL", discountPercent: 15 },
+      }),
+    });
+    const discount = fakeDiscount();
+    const repository = fakeRepository({ hasRedeemedCoupon: vi.fn().mockResolvedValue(false) });
+    const saga = new CheckoutSaga(catalog, coupons, discount, repository);
+
+    const result = await saga.run({
+      ...BASE_INPUT,
+      couponCode: "WELCOME2026",
+      customerEmail: "cliente@demo.test",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(repository.hasRedeemedCoupon).toHaveBeenCalledWith("cliente@demo.test", "WELCOME2026");
+    expect(discount.calculate).toHaveBeenCalledWith(
+      expect.objectContaining({ resolvedCoupon: { scope: "GLOBAL", discountPercent: 15 } }),
+    );
+    expect(repository.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ customerEmail: "cliente@demo.test", couponCode: "WELCOME2026" }),
+    );
+  });
+
+  it("cupon ya canjeado por este cliente: no bloquea el checkout, pero no vuelve a aplicar el descuento", async () => {
+    const catalog = fakeCatalog();
+    const coupons = fakeCoupons({
+      resolve: vi.fn().mockResolvedValue({
+        applied: true,
+        coupon: { scope: "GLOBAL", discountPercent: 15 },
+      }),
+    });
+    const discount = fakeDiscount();
+    const repository = fakeRepository({ hasRedeemedCoupon: vi.fn().mockResolvedValue(true) });
+    const saga = new CheckoutSaga(catalog, coupons, discount, repository);
+
+    const result = await saga.run({
+      ...BASE_INPUT,
+      couponCode: "WELCOME2026",
+      customerEmail: "cliente@demo.test",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(repository.hasRedeemedCoupon).toHaveBeenCalledWith("cliente@demo.test", "WELCOME2026");
+    expect(discount.calculate).toHaveBeenCalledWith(
+      expect.objectContaining({ resolvedCoupon: undefined }),
+    );
+    expect(repository.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ couponCode: null }),
+    );
+    expect(catalog.releaseStock).not.toHaveBeenCalled();
+  });
+
+  it("sin customerEmail (anonimo): no se puede verificar canje previo, el cupon se aplica igual", async () => {
+    const catalog = fakeCatalog();
+    const coupons = fakeCoupons({
+      resolve: vi.fn().mockResolvedValue({
+        applied: true,
+        coupon: { scope: "GLOBAL", discountPercent: 15 },
+      }),
+    });
+    const discount = fakeDiscount();
+    const repository = fakeRepository();
+    const saga = new CheckoutSaga(catalog, coupons, discount, repository);
+
+    await saga.run({ ...BASE_INPUT, couponCode: "WELCOME2026" });
+
+    expect(repository.hasRedeemedCoupon).not.toHaveBeenCalled();
+    expect(discount.calculate).toHaveBeenCalledWith(
+      expect.objectContaining({ resolvedCoupon: { scope: "GLOBAL", discountPercent: 15 } }),
     );
   });
 });

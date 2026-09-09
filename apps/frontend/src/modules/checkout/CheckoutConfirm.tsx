@@ -1,6 +1,7 @@
 import { confirmCheckout } from '@/shared/api/commerce'
 import { ApiError } from '@/shared/api/client'
 import { Button } from '@/shared/ui/Button'
+import { useAuthStore } from '@/modules/auth/store'
 import { selectCheckoutItems, selectItemCount, useCartStore } from '@/modules/cart/store'
 import { useCheckoutStore } from './store'
 
@@ -8,6 +9,7 @@ export function CheckoutConfirm() {
   const itemCount = useCartStore(selectItemCount)
   const clear = useCartStore((s) => s.clear)
   const couponCode = useCheckoutStore((s) => s.couponCode)
+  const customerEmail = useAuthStore((s) => s.email)
   const confirming = useCheckoutStore((s) => s.confirming)
   const orderId = useCheckoutStore((s) => s.orderId)
   const confirmError = useCheckoutStore((s) => s.confirmError)
@@ -20,7 +22,7 @@ export function CheckoutConfirm() {
     setConfirmError(null)
     try {
       const items = selectCheckoutItems(useCartStore.getState())
-      const order = await confirmCheckout({ items, couponCode })
+      const order = await confirmCheckout({ items, couponCode, customerEmail: customerEmail || undefined })
       setOrderId(order.orderId)
       clear()
     } catch (err) {

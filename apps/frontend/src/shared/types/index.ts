@@ -66,6 +66,7 @@ export interface CartItemInputDto {
 export interface CheckoutRequestDto {
   items: CartItemInputDto[]
   couponCode?: string
+  customerEmail?: string
 }
 
 export type DiscountReason = 'NOT_APPLICABLE' | 'INVALID_COUPON' | 'EXPIRED_COUPON'

@@ -63,4 +63,13 @@ export class CheckoutRequestDto {
   @ValidateNested()
   @Type(() => GuestInfoDto)
   guestInfo?: GuestInfoDto;
+
+  @ApiPropertyOptional({
+    description:
+      "Email de la sesion activa (demo o Google) que hace el checkout. Se usa para impedir " +
+      "que el mismo cliente canjee un cupon mas de una vez, no es el guestInfo de HU5.",
+  })
+  @IsOptional()
+  @IsEmail()
+  customerEmail?: string;
 }

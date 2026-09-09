@@ -13,6 +13,7 @@ export interface CheckoutInput {
   couponCode?: string;
   userId?: string | null;
   guestInfo?: GuestInfo;
+  customerEmail?: string;
 }
 
 export type CheckoutResult =
@@ -57,7 +58,21 @@ export class CheckoutSaga {
     });
 
     try {
-      const resolvedCoupon = await this.resolveCoupon(input.couponCode);
+      let resolvedCoupon = await this.resolveCoupon(input.couponCode);
+      let appliedCouponCode: string | null = resolvedCoupon ? (input.couponCode ?? null) : null;
+
+      if (resolvedCoupon && input.couponCode && input.customerEmail) {
+        const alreadyRedeemed = await this.repository.hasRedeemedCoupon(
+          input.customerEmail,
+          input.couponCode,
+        );
+        if (alreadyRedeemed) {
+          // Mismo tratamiento que un cupon invalido/expirado (Fig. 8): no es
+          // un error de sistema, el checkout sigue sin ese descuento.
+          resolvedCoupon = undefined;
+          appliedCouponCode = null;
+        }
+      }
 
       const breakdown = await this.discount.calculate({
         lines: lines.map(({ productId, category, originalAmount }) => ({
@@ -71,6 +86,8 @@ export class CheckoutSaga {
       const orderInput: CreateOrderInput = {
         userId: input.userId ?? null,
         guestInfo: input.guestInfo,
+        customerEmail: input.customerEmail ?? null,
+        couponCode: appliedCouponCode,
         breakdown,
         lines: lines.map((line) => ({
           productId: line.productId,

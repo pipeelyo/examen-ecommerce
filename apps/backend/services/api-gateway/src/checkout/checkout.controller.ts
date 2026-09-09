@@ -53,7 +53,7 @@ function toPublicOrder(body: unknown) {
     ...record,
     orderId: record.orderId ?? record.id ?? null,
   };
-  return convertBreakdownToDollars(normalized as CheckoutBreakdownCents);
+  return convertBreakdownToDollars(normalized as unknown as CheckoutBreakdownCents);
 }
 
 @Controller()

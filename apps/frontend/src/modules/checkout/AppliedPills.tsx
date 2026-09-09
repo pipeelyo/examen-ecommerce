@@ -1,5 +1,4 @@
 import { Ticket, X } from 'lucide-react'
-import { findLiveCoupon } from '@/mocks/couponBook'
 import { cn } from '@/shared/lib/cn'
 import { useCheckoutStore } from './store'
 
@@ -7,14 +6,17 @@ export function AppliedPills({ align = 'start' }: { align?: 'start' | 'end' }) {
   const preview = useCheckoutStore((s) => s.preview)
   const couponCode = useCheckoutStore((s) => s.couponCode)
   const couponMessage = useCheckoutStore((s) => s.couponMessage)
+  const couponDiscountPct = useCheckoutStore((s) => s.couponDiscountPct)
   const setCouponCode = useCheckoutStore((s) => s.setCouponCode)
   const setCouponMessage = useCheckoutStore((s) => s.setCouponMessage)
-  const live = couponCode ? findLiveCoupon(couponCode) : undefined
-  const couponPct = live ? Math.round(live.discountPct * 100) : 15
+  const setCouponDiscountPct = useCheckoutStore((s) => s.setCouponDiscountPct)
+  const couponPct = couponDiscountPct !== undefined ? Math.round(couponDiscountPct * 100) : undefined
 
   if (!preview) return null
 
-  const couponOn = Boolean(preview.breakdown.coupon.applied && couponCode && couponMessage === null)
+  const couponOn = Boolean(
+    preview.breakdown.coupon.applied && couponCode && couponMessage === null && couponPct !== undefined,
+  )
   const pills: { key: string; label: string; coupon?: boolean }[] = []
   if (preview.breakdown.category.applied) pills.push({ key: 'category', label: 'Categoría 10%' })
   if (preview.breakdown.volume.applied) pills.push({ key: 'volume', label: 'Volumen 5%' })
@@ -40,6 +42,7 @@ export function AppliedPills({ align = 'start' }: { align?: 'start' | 'end' }) {
                 onClick={() => {
                   setCouponCode(undefined)
                   setCouponMessage(null)
+                  setCouponDiscountPct(undefined)
                 }}
               >
                 <X className="size-3" />

@@ -4,6 +4,8 @@ import type { CheckoutResponseDto } from '@/shared/types'
 interface CheckoutState {
   couponCode?: string
   couponMessage: string | null
+  /** Fracción (0.10 = 10%), tal como la devuelve la API — nunca un valor mockeado. */
+  couponDiscountPct?: number
   preview: CheckoutResponseDto | null
   previewError: string | null
   orderId: string | null
@@ -12,6 +14,7 @@ interface CheckoutState {
   previewEpoch: number
   setCouponCode: (code: string | undefined) => void
   setCouponMessage: (message: string | null) => void
+  setCouponDiscountPct: (pct: number | undefined) => void
   setPreview: (preview: CheckoutResponseDto | null) => void
   setPreviewError: (message: string | null) => void
   setOrderId: (id: string | null) => void
@@ -24,15 +27,23 @@ interface CheckoutState {
 export const useCheckoutStore = create<CheckoutState>((set) => ({
   couponCode: undefined,
   couponMessage: null,
+  couponDiscountPct: undefined,
   preview: null,
   previewError: null,
   orderId: null,
   confirmError: null,
   confirming: false,
   previewEpoch: 0,
-  setCouponCode: (couponCode) => set((state) => (state.couponCode === couponCode ? state : { couponCode, orderId: null })),
+  setCouponCode: (couponCode) =>
+    set((state) =>
+      state.couponCode === couponCode
+        ? state
+        : { couponCode, orderId: null, couponDiscountPct: couponCode ? state.couponDiscountPct : undefined },
+    ),
   setCouponMessage: (couponMessage) =>
     set((state) => (state.couponMessage === couponMessage ? state : { couponMessage })),
+  setCouponDiscountPct: (couponDiscountPct) =>
+    set((state) => (state.couponDiscountPct === couponDiscountPct ? state : { couponDiscountPct })),
   setPreview: (preview) => set((state) => (state.preview === preview ? state : { preview })),
   setPreviewError: (previewError) =>
     set((state) => (state.previewError === previewError ? state : { previewError })),

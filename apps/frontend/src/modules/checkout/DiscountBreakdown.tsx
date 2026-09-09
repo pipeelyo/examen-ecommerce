@@ -31,17 +31,18 @@ function DiscountRow({
 
 export function DiscountBreakdown({
   preview,
-  couponPct = 15,
+  couponPct,
 }: {
   preview: CheckoutResponseDto
   couponPct?: number
 }) {
+  const couponLabel = couponPct !== undefined ? `Cupón ${couponPct}%` : 'Cupón'
   return (
     <div className="flex flex-col gap-1.5" data-testid="discount-breakdown">
       <Row label="Subtotal" amount={preview.originalSubtotal} />
       <DiscountRow label="Categoría" line={preview.breakdown.category} />
       <DiscountRow label="Volumen" line={preview.breakdown.volume} />
-      <DiscountRow label={`Cupón ${couponPct}%`} line={preview.breakdown.coupon} />
+      <DiscountRow label={couponLabel} line={preview.breakdown.coupon} />
       <Row label={`Ahorro (${preview.effectiveDiscountPercentage}%)`} amount={-preview.totalDiscount} tone="sage" />
       <div className="mt-2 flex flex-col items-end gap-1 border-t border-line pt-3">
         <span className="type-kicker">Total</span>

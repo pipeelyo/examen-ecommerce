@@ -12,6 +12,7 @@ export function CouponForm({ compact = false }: { compact?: boolean }) {
   const couponMessage = useCheckoutStore((s) => s.couponMessage)
   const setCouponCode = useCheckoutStore((s) => s.setCouponCode)
   const setCouponMessage = useCheckoutStore((s) => s.setCouponMessage)
+  const setCouponDiscountPct = useCheckoutStore((s) => s.setCouponDiscountPct)
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -19,6 +20,7 @@ export function CouponForm({ compact = false }: { compact?: boolean }) {
     if (!code) {
       setCouponCode(undefined)
       setCouponMessage(null)
+      setCouponDiscountPct(undefined)
       return
     }
     try {
@@ -26,11 +28,14 @@ export function CouponForm({ compact = false }: { compact?: boolean }) {
       if (!result.valid) {
         setCouponCode(code)
         setCouponMessage(result.reason === 'EXPIRED' ? 'EXPIRED' : 'INVALID')
+        setCouponDiscountPct(undefined)
         return
       }
       setCouponCode(result.code)
       setCouponMessage(null)
+      setCouponDiscountPct(result.discountPct)
     } catch (err) {
+      setCouponDiscountPct(undefined)
       if (err instanceof ApiError && err.status === 404) {
         setCouponCode(code)
         setCouponMessage('INVALID')

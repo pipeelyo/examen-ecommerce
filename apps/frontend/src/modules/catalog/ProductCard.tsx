@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Ban, Check, Plus, ShoppingBag, Truck } from 'lucide-react'
 import { Button } from '@/shared/ui/Button'
 import { Price } from '@/shared/ui/Price'
@@ -74,9 +75,17 @@ export function ProductCard({ product }: { product: ProductDto }) {
   const techDeal = product.category === TECH_CATEGORY
   const copy = LISTING_COPY[product.id]
   const bump = useCartPulse(product.id)
+  const articleRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (bump) {
+      articleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [bump])
 
   return (
     <article
+      ref={articleRef}
       data-bump={bump || undefined}
       className={cn(
         'product-row flex gap-3.5 border-b border-line/70 bg-card/55 px-4 py-4 last:border-b-0 sm:gap-5 sm:px-5 sm:py-5',

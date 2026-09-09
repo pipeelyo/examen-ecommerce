@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { applyAbsoluteCap } from "./apply-absolute-cap";
 import { DiscountStrategyFactory } from "./factories/discount-strategy.factory";
 import { runningSum } from "./money";
+import { scaleDiscountsToCap } from "./scale-discounts-to-cap";
 import type {
   CartLineState,
   DiscountContext,
@@ -97,13 +98,14 @@ export class DiscountEngineService {
     }
 
     const capped = applyAbsoluteCap(originalSubtotal, ctx.runningSubtotal);
+    const scaled = scaleDiscountsToCap(category.amount, volume.amount, coupon.amount, capped.totalDiscount);
     return this.toBreakdown(
       originalSubtotal,
       capped.totalDiscount,
       capped.cappedAt35,
-      category,
-      volume,
-      coupon,
+      { ...category, amount: scaled.category },
+      { ...volume, amount: scaled.volume },
+      { ...coupon, amount: scaled.coupon },
     );
   }
 

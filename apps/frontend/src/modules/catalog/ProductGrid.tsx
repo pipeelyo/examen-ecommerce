@@ -23,6 +23,7 @@ export function ProductGrid({
   const count = useCartStore(selectItemCount)
   const subtotal = useCartStore(selectSubtotal)
   const total = useCheckoutStore((s) => s.preview?.finalTotal ?? subtotal)
+  const orderId = useCheckoutStore((s) => s.orderId)
 
   useEffect(() => {
     let cancelled = false
@@ -36,7 +37,11 @@ export function ProductGrid({
     return () => {
       cancelled = true
     }
-  }, [])
+    // orderId cambia a un id real justo cuando se confirma un pedido — el
+    // checkout ya reservo/descarto stock en el backend, hay que recargar el
+    // catalogo para que "disponibles" refleje el stock real (antes se
+    // quedaba con la foto del primer fetch para siempre).
+  }, [orderId])
 
   const categories = useMemo(() => {
     const unique = new Set(products.map((product) => product.category))
@@ -76,7 +81,14 @@ export function ProductGrid({
         </div>
       </div>
       {bagOpen ? null : (
-        <div className="flex shrink-0 flex-col items-end gap-2.5">
+        // Solo desktop (md: = 768px, mismo breakpoint que useDesktopNav): en
+        // mobile este bloque quedaba SIEMPRE visible al lado del titulo
+        // (bagOpen nunca es true ahi, BuyerShell abre el CartSheet en su
+        // lugar), comprimiendo "Piezas en sala" + los chips de categoria a
+        // ~108px de ancho y forzando su wrap a varias lineas — eso empujaba
+        // .shop-pane (el listado real) a una altura de ~18px, invisible.
+        // MobileBar ya muestra el mismo total/boton en un dock inferior.
+        <div className="hidden shrink-0 flex-col items-end gap-2.5 md:flex">
           <button
             type="button"
             aria-pressed={false}

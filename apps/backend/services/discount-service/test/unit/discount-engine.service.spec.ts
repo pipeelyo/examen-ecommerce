@@ -59,6 +59,13 @@ describe("DiscountEngineService", () => {
     expect(result.originalSubtotal).toBe(120000);
     expect(result.breakdown.cappedAt35).toBe(true);
     expect(result.finalTotal).toBe(78000);
+    // Bug reportado: las 3 lineas mostraban su monto SIN topar (bruto 48180)
+    // aunque totalDiscount ya estaba topado en 42000 — sumaban mas que el
+    // total real y parecia que "seguia descontando" tras el tope del 35%.
+    expect(result.totalDiscount).toBe(42000);
+    expect(
+      result.breakdown.category.amount + result.breakdown.volume.amount + result.breakdown.coupon.amount,
+    ).toBe(result.totalDiscount);
   });
 
   it("carrito vacío", () => {

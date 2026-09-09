@@ -25,6 +25,8 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
       INTERNAL_SERVICE_TOKEN: dev-internal-token
+      # En job env (no en if: secrets.*) — GitHub rechaza secrets en if y el workflow ni arranca.
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,11 +45,11 @@ jobs:
         run: npm run test:coverage
 
       - name: SonarCloud Scan
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
 
   deploy:
     needs: test

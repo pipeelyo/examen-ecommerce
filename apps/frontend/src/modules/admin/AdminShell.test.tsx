@@ -1,11 +1,21 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { PRODUCTS } from '@/mocks/seed'
 import { useAuthStore } from '@/modules/auth/store'
+import type { ProductDto } from '@/shared/types'
 import { AdminShell } from './AdminShell'
+
+let catalog: ProductDto[] = []
+
+vi.mock('@/shared/api/commerce', () => ({
+  getProducts: () => Promise.resolve(catalog.map((product) => ({ ...product }))),
+  getCategories: () => Promise.resolve([]),
+}))
 
 describe('AdminShell', () => {
   beforeEach(() => {
+    catalog = PRODUCTS.map((product) => ({ ...product }))
     useAuthStore.getState().enterAdmin()
   })
 
@@ -37,7 +47,7 @@ describe('AdminShell', () => {
     expect(screen.getByRole('heading', { name: 'Catálogo y existencias' })).toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Resumen del módulo' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Gestión' })).toBeInTheDocument()
-    expect(screen.getByText('p-laptop')).toBeInTheDocument()
+    expect(await screen.findByText('p-laptop')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Cupones' }))
     expect(screen.getByRole('heading', { name: 'Libro de cupones' })).toBeInTheDocument()

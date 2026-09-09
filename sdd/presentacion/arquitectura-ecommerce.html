@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitectura · Core E-Commerce · Andrés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4EFE6;
+  --paper-2:#EBE4D6;
+  --ink:#1A1612;
+  --ink-soft:#4A433A;
+  --muted:#6F675C;
+  --line:#D4CBB8;
+  --accent:#2E5EAA;
+  --accent-ink:#1F4685;
+  --accent-soft:#DCE6F4;
+  --amber:#C1652E;
+  --amber-soft:#F6E6C8;
+  --amber-line:#E0B25C;
+  --ok:#2F8F5B;
+  --ok-soft:#DCEEE4;
+  --danger:#C0392B;
+  --danger-soft:#F6E0DC;
+  --white:#FFFcf7;
+  --shadow:0 12px 40px rgba(26,22,18,.08);
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'Source Sans 3',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--paper);color:var(--ink);font-family:var(--font-body);}
+body{
+  overflow:hidden;
+  background:
+    radial-gradient(1200px 700px at 12% -10%, rgba(46,94,170,.07), transparent 55%),
+    radial-gradient(900px 500px at 100% 110%, rgba(193,101,46,.06), transparent 50%),
+    var(--paper);
+}
+.deck{height:100%;width:100%;position:relative}
+.slide{
+  display:none;position:absolute;inset:0;
+  padding:5.2vh 6.4vw 8.4vh;
+  flex-direction:column;
+}
+.slide.on{display:flex}
+.kicker{
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:.7rem;
+}
+h1,h2,.serif{font-family:var(--font-display);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.slide h1{font-size:clamp(2.4rem,4.6vw,4.1rem);line-height:1.08;margin:.1rem 0 1.1rem}
+.slide h2{font-size:clamp(1.85rem,3.2vw,2.85rem);line-height:1.12;margin:.05rem 0 1rem}
+.lead{font-size:1.28rem;color:var(--ink-soft);max-width:46ch;line-height:1.45}
+p,li{font-size:1.12rem;line-height:1.45;color:var(--ink-soft)}
+.big{font-size:1.28rem}
+code,.mono{font-family:var(--font-mono);font-size:.86em}
+.why{
+  margin-top:auto;align-self:stretch;
+  background:var(--amber-soft);border:1px solid var(--amber-line);
+  border-left:6px solid var(--amber);border-radius:10px;
+  padding:.85rem 1.1rem;display:flex;gap:.85rem;align-items:flex-start;
+  box-shadow:var(--shadow);
+}
+.why b{color:var(--amber);font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:.2rem}
+.why p{color:var(--ink);font-size:1.02rem;line-height:1.4}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g6{grid-template-columns:repeat(3,1fr)}
+@media (max-width:980px){.g2,.g3,.g4,.g6{grid-template-columns:1fr}}
+.card{
+  background:var(--white);border:1px solid var(--line);border-radius:12px;
+  padding:1rem 1.1rem;box-shadow:var(--shadow);
+}
+.card h3{font-family:var(--font-display);font-size:1.15rem;margin-bottom:.35rem;color:var(--ink)}
+.card .tag{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.35rem}
+.pill{display:inline-flex;align-items:center;gap:.35rem;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;padding:.2rem .55rem;border-radius:99px;border:1px solid var(--line);background:var(--paper-2)}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pill.ent{background:var(--accent-soft);color:var(--accent-ink);border-color:transparent}
+.pill.warn{background:var(--amber-soft);color:var(--amber);border-color:transparent}
+.list{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+.list li{padding-left:1.2rem;position:relative}
+.list li::before{content:"";position:absolute;left:0;top:.55em;width:.45rem;height:.45rem;border-radius:50%;background:var(--accent)}
+.row{display:flex;gap:1.2rem;align-items:stretch;flex:1;min-height:0}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.num{font-family:var(--font-display);font-size:2.4rem;color:var(--accent);line-height:1}
+.formula{font-family:var(--font-mono);font-size:.92rem;background:#1A2230;color:#E8EEF7;padding:1rem 1.15rem;border-radius:10px;line-height:1.7;overflow:auto}
+.hud{
+  position:fixed;left:6.4vw;right:6.4vw;bottom:2.1vh;
+  display:flex;align-items:center;gap:1rem;z-index:20;
+  pointer-events:none;font-family:var(--font-mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em;
+}
+.bar{flex:1;height:3px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s ease}
+.hint{opacity:.7}
+.title-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.1rem 0 1.6rem}
+.svc{border-top:3px solid var(--accent)}
+.svc.warm{border-top-color:var(--amber)}
+.svc.ok{border-top-color:var(--ok)}
+.tiny{font-size:.92rem}
+.seq{display:flex;flex-direction:column;gap:.45rem;font-size:.95rem}
+.seq .step{display:grid;grid-template-columns:7.2rem 1fr auto;gap:.7rem;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:9px;padding:.45rem .7rem}
+.seq .who{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.arrow{color:var(--muted);font-size:1.1rem;text-align:center}
+.cap{font-size:.85rem;color:var(--muted);margin-top:.4rem}
+.node{background:var(--white);border:1.5px solid var(--line);border-radius:10px;padding:.55rem .7rem;text-align:center;font-size:.92rem}
+.node b{display:block;font-family:var(--font-display);font-size:1rem;color:var(--ink)}
+.node.pub{border-color:var(--accent);background:var(--accent-soft)}
+.node.dec{border-color:var(--amber);background:var(--amber-soft)}
+.flow{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.flow .arr{color:var(--accent);font-weight:700}
+.skus td,.skus th{padding:.45rem .7rem;text-align:left;border-bottom:1px solid var(--line);font-size:1rem}
+.skus{width:100%;border-collapse:collapse}
+.skus th{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mind{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.mind .card{min-height:7.2rem}
+.live{font-family:var(--font-mono);font-size:.85rem;background:var(--accent-soft);color:var(--accent-ink);padding:.35rem .7rem;border-radius:8px;display:inline-block}
+svg.diag{width:100%;height:auto;display:block}
+.cluster{background:rgba(255,252,247,.7);border:1px dashed var(--line);border-radius:14px;padding:.85rem}
+.footer-space{height:.4rem}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide on" data-title="Portada">
+  <div class="kicker">SDD · Core E-Commerce · Sustentación</div>
+  <h1>Checkout con descuentos acumulativos</h1>
+  <p class="lead">Arquitectura ya decidida, no un brainstorm. Seis microservicios NestJS, un gateway público, motor de descuentos en cascada y un caso dorado que cierra en <b>569.29</b>.</p>
+  <div class="title-meta">
+    <span class="pill">React + NestJS + Prisma</span>
+    <span class="pill">Supabase · Redis · GKE Autopilot</span>
+    <span class="pill ok">MVP demostrable</span>
+    <span class="pill ent">Enterprise documentado</span>
+  </div>
+  <p class="muted tiny">Andrés · 2026 · Fuente de verdad: <span class="mono">sdd-core-ecommerce.html</span></p>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-title="Agenda">
+  <div class="kicker">01 · Mapa de la charla</div>
+  <h2>Un arco, no un inventario</h2>
+  <div class="grid g2" style="flex:1">
+    <ol class="list" style="counter-reset:n">
+      <li><b style="color:var(--ink)">Problema y contrato del front</b> — qué hay que demostrar.</li>
+      <li><b style="color:var(--ink)">Principios</b> — gateway único, bounded contexts, 1 réplica.</li>
+      <li><b style="color:var(--ink)">C4</b> — contexto y seis contenedores.</li>
+      <li><b style="color:var(--ink)">Por qué el gateway</b> — tokens internos, AdminGuard.</li>
+      <li><b style="color:var(--ink)">Schemas Supabase</b> — sin JOIN cruzado.</li>
+    </ol>
+    <ol class="list" start="6">
+      <li><b style="color:var(--ink)">Patrones</b> — Strategy, Saga, Outbox, breaker, snapshots.</li>
+      <li><b style="color:var(--ink)">Motor</b> — categoría → volumen → cupón → 35%.</li>
+      <li><b style="color:var(--ink)">Checkout</b> — preview vs confirm, 409, saga, SSE.</li>
+      <li><b style="color:var(--ink)">Catálogo, auth, GKE</b> — lo vivo y lo listo.</li>
+      <li><b style="color:var(--ink)">Cierre</b> — mapa mental de decisiones.</li>
+    </ol>
+  </div>
+  <div class="why"><div><b>Por qué este orden</b><p>Primero el contrato (qué no se puede romper), después la forma (por qué así), después el dinero (motor) y al final el runtime (GCP). Cada slide defiende una decisión, no una lista de tecnologías.</p></div></div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-title="El problema">
+  <div class="kicker">02 · Kata</div>
+  <h2>Un MVP de 20 minutos con criterio enterprise</h2>
+  <div class="row">
+    <div class="card grow">
+      <div class="tag">El enunciado pide</div>
+      <ul class="list">
+        <li>Carrito + catálogo (HU1) y cupón con desglose (HU2).</li>
+        <li>Checkout que valida stock, recalcula y persiste (HU3).</li>
+        <li>Alerta persistente si se alcanza el tope del 35% (HU4).</li>
+        <li>Cobertura ≥80% y decisiones defendibles.</li>
+      </ul>
+    </div>
+    <div class="card grow">
+      <div class="tag">La trampa</div>
+      <p class="big">Levantar K8s, IAM, broker y Event Sourcing “de verdad” en 20 minutos <b>pierde</b> la rúbrica: evalúa criterio sobre cantidad de código.</p>
+      <p style="margin-top:.8rem">Solución del SDD: <b>dos niveles explícitos</b>. MVP se corre. Enterprise se deja cosido por interfaces.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué</b><p>El trade-off “simplicidad vs. extensibilidad” no es un apéndice: es la tesis. El MVP no es un prototipo desechable; es el mismo sistema sin la infra pesada encendida.</p></div></div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-title="Contrato del front">
+  <div class="kicker">03 · Contrato congelado</div>
+  <h2>El front manda el shape. El backend se adapta.</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="tag">Regla de oro</div>
+      <p class="big">No se cambian DTOs, paths ni el motor del contrato. Si algo no calza, se ajusta la implementación — no se inventa otro shape.</p>
+    </div>
+    <div class="card">
+      <div class="tag">Caso dorado</div>
+      <p>Laptop + Mouse + Libro + <span class="mono">WELCOME2026</span></p>
+      <p class="num" style="margin-top:.4rem">569.29</p>
+      <p class="tiny muted">Subtotal 780.00 · efectivo ≈ 27.02% · no dispara el 35%.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1rem">
+    <p class="tiny"><b style="color:var(--ink)">Borde público:</b> montos en <b>dólares</b> (2 decimales). <b>Interno:</b> el motor trabaja en <b>centavos enteros</b> (78000 → 56929). La conversión vive solo en el gateway.</p>
+  </div>
+  <div class="why"><div><b>Por qué</b><p>El CONTRACT es lo que el front ya invoca. Inventar IDs, rutas admin extra o Google Auth rompería la demo. Cuatro SKUs estables: <span class="mono">p-laptop</span>, <span class="mono">p-mouse</span>, <span class="mono">p-libro</span>, <span class="mono">p-silla</span>.</p></div></div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-title="Principios">
+  <div class="kicker">04 · Principios no negociables</div>
+  <h2>Tres reglas que explican el resto</h2>
+  <div class="grid g3" style="flex:1">
+    <div class="card svc">
+      <div class="num">1</div>
+      <h3>Un solo borde público</h3>
+      <p>Solo <span class="mono">api-gateway :3000</span> habla con el mundo. Los otros cinco son red interna.</p>
+    </div>
+    <div class="card svc">
+      <div class="num">2</div>
+      <h3>Bounded contexts</h3>
+      <p>Un schema Postgres por dueño. Nadie hace JOIN cruzado. Si order necesita un nombre, lo pide por HTTP y lo guarda como snapshot.</p>
+    </div>
+    <div class="card svc warm">
+      <div class="num">3</div>
+      <h3>Costo: 1 réplica</h3>
+      <p>GKE Autopilot, una réplica por Deployment. HA y HPA quedan diseñados, no facturados para la demo.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué</b><p>Microservicios de verdad (proceso propio, Dockerfile propio) sin pagar seis bases ni seis IPs públicas. El gateway es el perímetro; el schema es la propiedad de datos; Autopilot 1 réplica es el presupuesto.</p></div></div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-title="C4 contexto">
+  <div class="kicker">05 · C4 · Contexto</div>
+  <h2>Personas, sistema y dependencias</h2>
+  <svg class="diag" viewBox="0 0 980 340" role="img" aria-label="Diagrama C4 de contexto">
+    <rect x="20" y="110" width="150" height="90" rx="12" fill="#FFFcf7" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="95" y="148" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16" fill="#1A1612">Cliente</text>
+    <text x="95" y="172" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="12" fill="#6F675C">compra / invitado</text>
+    <rect x="20" y="230" width="150" height="70" rx="12" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="95" y="260" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15" fill="#1A1612">Admin</text>
+    <text x="95" y="280" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="12" fill="#6F675C">inventario / cupones</text>
+    <rect x="260" y="70" width="280" height="230" rx="16" fill="#DCE6F4" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="400" y="108" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="20" fill="#1F4685">Core E-Commerce</text>
+    <text x="400" y="136" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="13" fill="#1F4685">checkout + descuentos</text>
+    <text x="400" y="178" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="#1F4685">React UI · 6 Nest</text>
+    <text x="400" y="200" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" fill="#1F4685">gateway :3000</text>
+    <text x="400" y="248" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="12" fill="#4A433A">HTTPS REST + SSE</text>
+    <rect x="630" y="40" width="160" height="80" rx="12" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="710" y="74" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15">Supabase Auth</text>
+    <text x="710" y="96" text-anchor="middle" font-size="12" fill="#6F675C" font-family="Source Sans 3,sans-serif">JWT / JWKS</text>
+    <rect x="810" y="40" width="150" height="80" rx="12" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="885" y="74" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15">Postgres</text>
+    <text x="885" y="96" text-anchor="middle" font-size="12" fill="#6F675C" font-family="Source Sans 3,sans-serif">5 schemas</text>
+    <rect x="630" y="160" width="160" height="80" rx="12" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="710" y="194" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15">Redis</text>
+    <text x="710" y="216" text-anchor="middle" font-size="12" fill="#6F675C" font-family="Source Sans 3,sans-serif">pub/sub · pool</text>
+    <rect x="810" y="160" width="150" height="80" rx="12" fill="#F6E6C8" stroke="#C1652E"/>
+    <text x="885" y="194" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15">GKE</text>
+    <text x="885" y="216" text-anchor="middle" font-size="12" fill="#C1652E" font-family="Source Sans 3,sans-serif">Autopilot · 1 replica</text>
+    <line x1="170" y1="155" x2="260" y2="155" stroke="#2E5EAA" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="170" y1="255" x2="260" y2="230" stroke="#8a7f6d" stroke-width="1.5"/>
+    <line x1="540" y1="120" x2="630" y2="80" stroke="#8a7f6d" stroke-width="1.5"/>
+    <line x1="540" y1="160" x2="630" y2="200" stroke="#8a7f6d" stroke-width="1.5"/>
+    <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2E5EAA"/></marker></defs>
+  </svg>
+  <div class="why"><div><b>Por qué este recorte</b><p>El sistema de software es uno. Auth, datos, eventos e infra son dependencias — no “más microservicios”. Firebase Auth se descartó: Supabase ya es el Postgres.</p></div></div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-title="Seis contenedores">
+  <div class="kicker">06 · C4 · Contenedores</div>
+  <h2>Seis procesos NestJS independientes</h2>
+  <div class="grid g3" style="margin-bottom:.8rem">
+    <div class="card svc"><div class="tag">Público</div><h3>api-gateway :3000</h3><p class="tiny">Routing, Bearer/JWT, SSE, cents→dólares. Única API pública.</p></div>
+    <div class="card svc"><div class="tag">Catálogo</div><h3>catalog-service</h3><p class="tiny">products, categories, reserve/release de stock.</p></div>
+    <div class="card svc"><div class="tag">Cupones</div><h3>coupon-service</h3><p class="tiny">CRUD + resolve (vigencia = dos fechas).</p></div>
+    <div class="card svc warm"><div class="tag">Sin DB</div><h3>discount-service</h3><p class="tiny">Strategy + Factory. Cascada + tope 35%. Puro.</p></div>
+    <div class="card svc ok"><div class="tag">Orquestador</div><h3>order-service</h3><p class="tiny">Saga, orders, order_items, outbox.</p></div>
+    <div class="card svc"><div class="tag">Eventos</div><h3>notification-service</h3><p class="tiny">Consume <span class="mono">order.events</span>. Stub de mail en MVP.</p></div>
+  </div>
+  <div class="why"><div><b>Por qué no un monolito</b><p>Con módulos en un solo proceso el checkout cabía en una transacción SQL. Separados, reservar stock y persistir la orden son llamadas de red: la saga deja de ser “para el futuro” y pasa a ser MVP.</p></div></div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-title="Por qué gateway">
+  <div class="kicker">07 · API Gateway</div>
+  <h2>No se exponen los micros</h2>
+  <svg class="diag" viewBox="0 0 980 250" aria-label="Gateway como único borde público">
+    <rect x="20" y="80" width="140" height="70" rx="10" fill="#FFFcf7" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="90" y="112" text-anchor="middle" font-size="14" font-family="Fraunces,Georgia,serif">Navegador</text>
+    <text x="90" y="132" text-anchor="middle" font-size="11" fill="#6F675C" font-family="IBM Plex Mono,monospace">HTTPS /api/v1</text>
+    <rect x="230" y="55" width="220" height="120" rx="14" fill="#DCE6F4" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="340" y="95" text-anchor="middle" font-size="16" font-family="Fraunces,Georgia,serif" fill="#1F4685">api-gateway</text>
+    <text x="340" y="118" text-anchor="middle" font-size="12" font-family="IBM Plex Mono,monospace" fill="#1F4685">:3000 · ClusterIP atrás</text>
+    <text x="340" y="142" text-anchor="middle" font-size="11" fill="#4A433A">Bearer · AdminGuard · SSE</text>
+    <rect x="530" y="20" width="150" height="54" rx="8" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="605" y="52" text-anchor="middle" font-size="13">catalog :3002</text>
+    <rect x="700" y="20" width="150" height="54" rx="8" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="775" y="52" text-anchor="middle" font-size="13">coupon :3003</text>
+    <rect x="530" y="90" width="150" height="54" rx="8" fill="#F6E6C8" stroke="#C1652E"/>
+    <text x="605" y="122" text-anchor="middle" font-size="13">discount :3001</text>
+    <rect x="700" y="90" width="150" height="54" rx="8" fill="#DCEEE4" stroke="#2F8F5B"/>
+    <text x="775" y="122" text-anchor="middle" font-size="13">order :3004</text>
+    <rect x="615" y="160" width="150" height="54" rx="8" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="690" y="192" text-anchor="middle" font-size="13">notification</text>
+    <text x="340" y="210" text-anchor="middle" font-size="11" fill="#C1652E" font-family="IBM Plex Mono,monospace">X-Internal-Token · nunca el JWT del usuario</text>
+    <line x1="160" y1="115" x2="230" y2="115" stroke="#2E5EAA" stroke-width="2"/>
+    <line x1="450" y1="90" x2="530" y2="47" stroke="#8a7f6d"/>
+    <line x1="450" y1="110" x2="530" y2="117" stroke="#8a7f6d"/>
+    <line x1="450" y1="100" x2="700" y2="47" stroke="#8a7f6d"/>
+    <line x1="450" y1="120" x2="700" y2="117" stroke="#8a7f6d"/>
+  </svg>
+  <div class="why"><div><b>Por qué</b><p>Un perímetro: CORS, auth, mapeo CONTRACT, circuit breaker. Los internos no verifican el JWT de Supabase — confían en red cerrada + token compartido. En Enterprise ese header se sustituye por mTLS / Workload Identity.</p></div></div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-title="AdminGuard y preview">
+  <div class="kicker">08 · Gateway · detalles que se preguntan</div>
+  <h2>Preview no pasa por order. Admin no es JWT aún.</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="tag">Preview vs confirm</div>
+      <p><span class="mono">POST /api/v1/checkout/preview</span> llama a coupon + discount. <b>Cero stock, cero persistencia.</b></p>
+      <p style="margin-top:.6rem"><span class="mono">POST /api/v1/checkout</span> sí va a <span class="mono">order-service</span> y arranca la saga.</p>
+    </div>
+    <div class="card">
+      <div class="tag">AdminGuard (MVP)</div>
+      <p>Rutas <span class="mono">/admin/*</span> piden header <span class="mono">x-admin-token</span> vs <span class="mono">ADMIN_API_TOKEN</span>.</p>
+      <p style="margin-top:.6rem" class="tiny">Sustituto documentado. Migrar a JWT+RolesGuard cambia el guard, no los controllers. El módulo admin del front CONTRACT es mock-only.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué</b><p>Idempotencia del desglose (HU2) sin reservar. El token admin evita fingir login Google o romper el Bearer demo del CONTRACT. Dos caminos, un solo motor.</p></div></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-title="Bounded contexts">
+  <div class="kicker">09 · Datos</div>
+  <h2>Una instancia, cinco schemas, cero JOIN cruzado</h2>
+  <div class="grid g3" style="flex:1">
+    <div class="card svc"><h3>catalog</h3><p class="tiny mono">products · categories</p><p class="tiny">Dueño: catalog-service</p></div>
+    <div class="card svc"><h3>coupon</h3><p class="tiny mono">coupons</p><p class="tiny">Dueño: coupon-service</p></div>
+    <div class="card svc ok"><h3>order</h3><p class="tiny mono">orders · order_items · outbox_events</p><p class="tiny">Dueño: order-service</p></div>
+    <div class="card svc"><h3>identity</h3><p class="tiny mono">users · roles · user_roles</p><p class="tiny">Lectura desde el gateway</p></div>
+    <div class="card svc warm"><h3>audit</h3><p class="tiny mono">_x27f_evt_trace</p><p class="tiny">Solo triggers + role_admin</p></div>
+    <div class="card"><h3>discount</h3><p class="tiny">Sin schema. Sin estado. Recibe un contexto plano, devuelve breakdown.</p></div>
+  </div>
+  <div class="why"><div><b>Por qué no 6 Postgres</b><p>Database-per-service pragmático: misma factura y backup de Supabase, propiedad aislada por <span class="mono">search_path</span>. Integridad entre contextos = HTTP + snapshots, no FK de aplicación cruzada.</p></div></div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-title="Patrones">
+  <div class="kicker">10 · Patrones (mínimo 2, aquí van 6)</div>
+  <h2>Cada patrón tiene una herida que cierra</h2>
+  <div class="grid g3">
+    <div class="card"><div class="tag">Discount</div><h3>Strategy + Factory</h3><p class="tiny">Reglas intercambiables. Pipeline ordenado = precedencia de negocio. Open/Closed.</p></div>
+    <div class="card"><div class="tag">Checkout</div><h3>Saga orquestada</h3><p class="tiny">order-service es el único que sabe compensar. No coreografía en el tramo lineal.</p></div>
+    <div class="card"><div class="tag">Eventos</div><h3>Outbox + Adapter</h3><p class="tiny"><span class="mono">EventPublisher</span>: Redis hoy, RabbitMQ mañana. Sin reescribir order-service.</p></div>
+    <div class="card"><div class="tag">Red</div><h3>Circuit breaker</h3><p class="tiny">opossum entre micros. Fallback 503; Redis publish no bloquea el 201.</p></div>
+    <div class="card"><div class="tag">Historial</div><h3>Snapshots</h3><p class="tiny">precio y categoría en <span class="mono">order_items</span>. El catálogo puede cambiar mañana.</p></div>
+    <div class="card"><div class="tag">Front</div><h3>Observer (Zustand)</h3><p class="tiny">Carrito en cliente. CONTRACT no tiene API de cart. MVP deliberado.</p></div>
+  </div>
+  <div class="why"><div><b>Por qué tantos</b><p>El enunciado pide ≥2. El SDD muestra los que el diseño realmente necesita — no un catálogo GoF. Repository aísla Prisma en cada servicio.</p></div></div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-title="Strategy">
+  <div class="kicker">11 · Strategy + Factory</div>
+  <h2>Tres estrategias, un pipeline, un cap</h2>
+  <div class="flow" style="margin:1rem 0 1.2rem">
+    <div class="node"><b>Category</b>10% Tecnología</div><span class="arr">→</span>
+    <div class="node"><b>Volume</b>5% si subtotal &gt; 100</div><span class="arr">→</span>
+    <div class="node"><b>Coupon</b>GLOBAL o CATEGORY</div><span class="arr">→</span>
+    <div class="node dec"><b>applyAbsoluteCap</b>min(bruto, 35%)</div>
+  </div>
+  <p class="tiny muted" style="margin-bottom:1rem">Factory fija el orden. Una 4ª regla futura se registra ahí, no con if/else en el orquestador. El motor no importa Nest ni Prisma.</p>
+  <div class="why"><div><b>Por qué Strategy</b><p>Cada regla es testeable en aislamiento. El tope no es una “cuarta estrategia de negocio”: es un guard de margen que se aplica <i>después</i> de acumular, inyectable con un bruto sintético del 50%.</p></div></div>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-title="Saga decisión">
+  <div class="kicker">12 · Saga</div>
+  <h2>Orquestación, no coreografía</h2>
+  <div class="grid g2">
+    <div class="card svc ok">
+      <div class="tag">Elegido · orquestación</div>
+      <p>Flujo lineal de 4 pasos. Un solo sitio sabe el orden y la compensación. Fácil de seguir en sustentación y en logs.</p>
+    </div>
+    <div class="card">
+      <div class="tag">Reservado · coreografía</div>
+      <p>Servicios reaccionando a eventos <i>después</i> de <span class="mono">OrderConfirmed</span>: notificación, y el día que exista pasarela de pago externa.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué no coreografía ahora</b><p>Una cadena de eventos para cuatro pasos síncronos sería más difícil de depurar para el mismo resultado. Coreografía brilla cuando el flujo deja de ser lineal.</p></div></div>
+</section>
+
+<!-- 14 -->
+<section class="slide" data-title="Outbox Redis">
+  <div class="kicker">13 · Mensajería</div>
+  <h2>Outbox transaccional + Redis Pub/Sub</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Qué garantiza el outbox</h3>
+      <p>La fila <span class="mono">outbox_events</span> nace en la <b>misma tx</b> que la orden. No hay “evento publicado de una orden que no existió”.</p>
+      <p class="tiny" style="margin-top:.6rem">OutboxRelay hace polling de PENDING → Redis <span class="mono">order.events</span> → PUBLISHED. Eso es la base del “Event Sourcing” pedido, sin event store completo.</p>
+    </div>
+    <div class="card">
+      <h3>Por qué no RabbitMQ hoy</h3>
+      <p>Volumen: una orden, un consumidor. Redis ya está para cache/pool. Un broker durable + DLQ es una tercera pieza de infra.</p>
+      <p class="tiny" style="margin-top:.6rem">Honestidad: Pub/Sub es <b>at-most-once</b>. Si notification está caído, se pierde el mail — no la orden. Reproceso manual desde PENDING.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué esta costura</b><p><span class="mono">EventPublisher</span> (Adapter) deja RabbitMQ como implementación nueva, no como reescritura. Redis ≠ PgBouncer: el semáforo no reemplaza pooling real.</p></div></div>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-title="Breaker snapshots Zustand">
+  <div class="kicker">14 · Resiliencia y estado</div>
+  <h2>Breaker, snapshots, carrito en el cliente</h2>
+  <div class="grid g3">
+    <div class="card">
+      <h3>Circuit breaker</h3>
+      <p class="tiny">Tras N fallos: OPEN → fallback inmediato. HALF_OPEN prueba una. Si cae discount <i>después</i> de reservar: se libera stock y 503.</p>
+    </div>
+    <div class="card">
+      <h3>Snapshots</h3>
+      <p class="tiny"><span class="mono">unit_price_snapshot</span> y <span class="mono">category_snapshot</span> en cada línea. Una orden histórica no muta si cambia el catálogo.</p>
+    </div>
+    <div class="card">
+      <h3>Zustand MVP</h3>
+      <p class="tiny">El CONTRACT no tiene rutas de carrito. Tablas <span class="mono">carts</span> existen por paridad ER; conectarles API sería YAGNI.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué</b><p>El 201 al cliente no espera a Redis ni al mail. Publicar es eventual. El carrito en memoria de UI cumple HU1 sin un séptimo servicio.</p></div></div>
+</section>
+
+<!-- 16 -->
+<section class="slide" data-title="Motor cascada">
+  <div class="kicker">15 · Motor de descuentos</div>
+  <h2>Cascada multiplicativa, no suma 10+5+15</h2>
+  <svg class="diag" viewBox="0 0 980 200" aria-label="Cascada de descuentos">
+    <rect x="10" y="50" width="170" height="90" rx="12" fill="#FFFcf7" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="95" y="88" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16">Subtotal</text>
+    <text x="95" y="112" text-anchor="middle" font-size="13" fill="#6F675C">Σ precio × cant</text>
+    <text x="200" y="98" font-size="22" fill="#2E5EAA">→</text>
+    <rect x="230" y="50" width="170" height="90" rx="12" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="315" y="84" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16">Categoría</text>
+    <text x="315" y="108" text-anchor="middle" font-size="13">10% Tecnología</text>
+    <text x="420" y="98" font-size="22" fill="#2E5EAA">→</text>
+    <rect x="450" y="50" width="170" height="90" rx="12" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="535" y="84" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16">Volumen</text>
+    <text x="535" y="108" text-anchor="middle" font-size="13">5% si &gt; 100 USD</text>
+    <text x="640" y="98" font-size="22" fill="#2E5EAA">→</text>
+    <rect x="670" y="50" width="140" height="90" rx="12" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="740" y="84" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16">Cupón</text>
+    <text x="740" y="108" text-anchor="middle" font-size="13">15% / TECH30…</text>
+    <text x="825" y="98" font-size="22" fill="#C1652E">→</text>
+    <rect x="850" y="50" width="120" height="90" rx="12" fill="#F6E6C8" stroke="#C1652E" stroke-width="2"/>
+    <text x="910" y="84" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="16">Tope</text>
+    <text x="910" y="108" text-anchor="middle" font-size="13">35%</text>
+  </svg>
+  <p class="tiny muted">Volumen se evalúa <b>después</b> de categoría (umbral sobre 100.01, no sobre 100.00). Vigencia del cupón la decide <span class="mono">coupon-service.resolve</span>, no el motor.</p>
+  <div class="why"><div><b>Por qué ese orden</b><p>De lo más específico (línea Tecnología) a lo más general (carrito) y al final la promoción. El tope es gobernanza de margen, no un descuento más: si se aplicara antes, un cupón podría “comerse” el cap o inflarlo.</p></div></div>
+</section>
+
+<!-- 17 -->
+<section class="slide" data-title="Caso dorado">
+  <div class="kicker">16 · Caso dorado · CONTRACT</div>
+  <h2>780.00 → 569.29</h2>
+  <table class="skus">
+    <thead><tr><th>Paso</th><th>Detalle</th><th>USD</th><th>Centavos</th></tr></thead>
+    <tbody>
+      <tr><td>Carrito</td><td>Laptop 700 + Mouse 50 + Libro 30</td><td>780.00</td><td class="mono">78000</td></tr>
+      <tr><td>1 · Categoría</td><td>10% sobre 750 de Tecnología → −75</td><td>705.00</td><td class="mono">70500</td></tr>
+      <tr><td>2 · Volumen</td><td>705 &gt; 100 → 5% → −35.25</td><td>669.75</td><td class="mono">66975</td></tr>
+      <tr><td>3 · WELCOME2026</td><td>15% → −100.46</td><td><b>569.29</b></td><td class="mono">56929</td></tr>
+      <tr><td>Tope 35%</td><td>Bruto 210.71 = 27.02% &lt; 273.00</td><td>—</td><td>no trunca</td></tr>
+    </tbody>
+  </table>
+  <div class="why"><div><b>Por qué centavos</b><p>Flotante en cascada diverge un céntimo entre corridas y rompe igualdad exacta. El contrato habla dólares; el motor, enteros. Máximo con las 3 tasas fijas: <b>27.325%</b> — el 35% no se activa con solo WELCOME2026.</p></div></div>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-title="Tope 35">
+  <div class="kicker">17 · HU4 · el hallazgo para la mesa</div>
+  <h2>El 35% es inalcanzable… hasta que HU7 existe</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="tag">Con WELCOME2026 solo</div>
+      <p class="num">27.325%</p>
+      <p>1 − (0.90 × 0.95 × 0.85). Da igual la composición del carrito. No fingir la alerta en la demo con el cupón oficial.</p>
+    </div>
+    <div class="card">
+      <div class="tag">Con TECH30 (admin, 30% Tecnología)</div>
+      <p>Laptop 700 + Smartphone 500 = 1200 → bruto 40.15% → <b>se trunca a 780.00</b>.</p>
+      <p class="tiny" style="margin-top:.5rem">El guard se prueba inyectando 50% sintético a <span class="mono">applyAbsoluteCap</span>, no armando un carrito mágico.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué implementarlo igual</b><p>Es la red de seguridad del enunciado. HU4 pinta cuando el backend manda <span class="mono">cappedAt35: true</span> — banner persistente, no un toast.</p></div></div>
+</section>
+
+<!-- 19 -->
+<section class="slide" data-title="Preview vs confirm">
+  <div class="kicker">18 · Checkout</div>
+  <h2>Dos POST, un motor, dos semánticas</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="pill">Idempotente</div>
+      <h3 style="margin-top:.5rem">/checkout/preview</h3>
+      <p>Gateway → coupon.resolve + discount.calculate. Debounce 300 ms en UI. Cupón inválido es <b>resultado</b> (<span class="mono">applied:false</span>), no 500.</p>
+    </div>
+    <div class="card svc ok">
+      <div class="pill ok">Efecto</div>
+      <h3 style="margin-top:.5rem">/checkout</h3>
+      <p>Saga: reserve → resolve → calculate → persist+outbox. 201 con breakdown. <span class="mono">orderId</span> nulo solo en preview.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué no un solo endpoint</b><p>Calcular en cada tecleo no puede reservar stock. Duplicar reglas en el front mentiría el desglose. Un servicio sin DB es la única fuente.</p></div></div>
+</section>
+
+<!-- 20 -->
+<section class="slide" data-title="Secuencia">
+  <div class="kicker">19 · Secuencia</div>
+  <h2>El cliente nunca espera el SSE</h2>
+  <div class="seq">
+    <div class="step"><span class="who">UI</span><span>POST /api/v1/checkout</span><span class="pill">gateway</span></div>
+    <div class="step"><span class="who">order</span><span>catalog.reserveStock(items)</span><span class="pill warn">o 409</span></div>
+    <div class="step"><span class="who">order</span><span>coupon.resolve(code) — valid_from / valid_to</span><span class="pill">interno</span></div>
+    <div class="step"><span class="who">order</span><span>discount.calculate(context en centavos)</span><span class="pill">puro</span></div>
+    <div class="step"><span class="who">order</span><span>TX: order + items snapshot + outbox PENDING</span><span class="pill ok">commit</span></div>
+    <div class="step"><span class="who">UI</span><span>201 + breakdown · confirmación en pantalla</span><span class="pill ok">listo</span></div>
+    <div class="step"><span class="who">relay</span><span>Redis order.events → notification + SSE</span><span class="pill">eventual</span></div>
+  </div>
+  <div class="why"><div><b>Por qué este orden</b><p>Stock primero: si no hay, nada se calculó ni se escribió. Cupón antes del motor: vigencia no es una estrategia de descuento. Persistencia al final: un solo paso compensable.</p></div></div>
+</section>
+
+<!-- 21 -->
+<section class="slide" data-title="409 y compensación">
+  <div class="kicker">20 · Excepciones del checkout</div>
+  <h2>409, release, y el 201 no se bloquea</h2>
+  <div class="grid g3">
+    <div class="card" style="border-top:3px solid var(--danger)">
+      <h3>409 stock</h3>
+      <p class="tiny"><span class="mono">InsufficientStockException</span>. Nada persistido. UI alerta. Silla del CONTRACT (stock 0) es el caso de mesa.</p>
+    </div>
+    <div class="card svc warm">
+      <h3>Compensación</h3>
+      <p class="tiny">Si la TX de order falla <i>después</i> de reservar: <span class="mono">POST /internal/stock/release</span>. Único paso con efecto persistente previo.</p>
+    </div>
+    <div class="card svc">
+      <h3>SSE ≠ 201</h3>
+      <p class="tiny">Si Redis está caído, el evento queda PENDING. El cliente ya recibió 201. Relay reintenta con backoff.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué solo un release</b><p>Resolver cupón y calcular son reversibles o de solo lectura. Compensar lo que no mutó es teatro. La saga se defiende con un único undo real.</p></div></div>
+</section>
+
+<!-- 22 -->
+<section class="slide" data-title="Saga visual">
+  <div class="kicker">21 · Saga · Fig. 5</div>
+  <h2>El undo vive en un solo borde</h2>
+  <svg class="diag" viewBox="0 0 980 220" aria-label="Saga de checkout">
+    <rect x="20" y="80" width="150" height="64" rx="10" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="95" y="118" text-anchor="middle" font-size="14">1. Reserve</text>
+    <text x="185" y="118" fill="#2E5EAA" font-size="20">→</text>
+    <rect x="215" y="80" width="150" height="64" rx="10" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="290" y="118" text-anchor="middle" font-size="14">2. Resolve</text>
+    <text x="380" y="118" fill="#2E5EAA" font-size="20">→</text>
+    <rect x="410" y="80" width="150" height="64" rx="10" fill="#DCE6F4" stroke="#2E5EAA"/>
+    <text x="485" y="118" text-anchor="middle" font-size="14">3. Calculate</text>
+    <text x="575" y="118" fill="#2E5EAA" font-size="20">→</text>
+    <rect x="605" y="80" width="150" height="64" rx="10" fill="#DCEEE4" stroke="#2F8F5B"/>
+    <text x="680" y="118" text-anchor="middle" font-size="14">4. Persist</text>
+    <path d="M680 144 L680 190 L95 190 L95 144" fill="none" stroke="#C1652E" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="390" y="182" text-anchor="middle" font-size="13" fill="#C1652E">si 4 falla → release stock</text>
+    <rect x="790" y="30" width="170" height="50" rx="8" fill="#F6E0DC" stroke="#C0392B"/>
+    <text x="875" y="60" text-anchor="middle" font-size="13">sin stock → 409</text>
+    <line x1="95" y1="80" x2="95" y2="55" stroke="#C0392B"/>
+    <line x1="95" y1="55" x2="790" y2="55" stroke="#C0392B"/>
+    <rect x="790" y="140" width="170" height="50" rx="8" fill="#DCEEE4" stroke="#2F8F5B"/>
+    <text x="875" y="170" text-anchor="middle" font-size="13">OK → 201 + outbox</text>
+  </svg>
+  <div class="why"><div><b>Por qué orquestador = order-service</b><p>Es el único que posee la transacción de negocio. catalog no debe “adivinar” si la orden se guardó. Un dueño del undo evita compensaciones dobles.</p></div></div>
+</section>
+
+<!-- 23 -->
+<section class="slide" data-title="Catálogo CONTRACT">
+  <div class="kicker">22 · Catálogo y cupones</div>
+  <h2>Cuatro SKUs del CONTRACT. Nada inventado.</h2>
+  <table class="skus">
+    <thead><tr><th>id</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">p-laptop</td><td>Laptop</td><td>Tecnología</td><td>700</td><td>10</td></tr>
+      <tr><td class="mono">p-mouse</td><td>Mouse</td><td>Tecnología</td><td>50</td><td>20</td></tr>
+      <tr><td class="mono">p-libro</td><td>Libro</td><td>Libros</td><td>30</td><td>15</td></tr>
+      <tr><td class="mono">p-silla</td><td>Silla</td><td>Muebles</td><td>349</td><td>0</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny" style="margin-top:.8rem">Cupones semilla: <span class="mono">WELCOME2026</span> 15% GLOBAL · <span class="mono">TECH30</span> · <span class="mono">JUGUETES10</span> · <span class="mono">EXPIRED2025</span> · <span class="mono">FUTURE2027</span>. GET código inexistente → 404; vencido → 200 <span class="mono">valid:false</span>.</p>
+  <div class="why"><div><b>Por qué estos ids</b><p>El front ya los llama. UUIDs “bonitos” rompían <span class="mono">ParseUUIDPipe</span>. Soft-delete en admin: nunca borrar un producto referenciado por snapshots de orden.</p></div></div>
+</section>
+
+<!-- 24 -->
+<section class="slide" data-title="Auditoría HMAC">
+  <div class="kicker">23 · Auditoría</div>
+  <h2>Ofuscación no es seguridad</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="mono">_x27f_evt_trace</span></h3>
+      <p>Una tabla, trigger genérico, HMAC (pgcrypto) sobre el contenido de la fila. GRANT solo a <span class="mono">role_admin</span>.</p>
+    </div>
+    <div class="card">
+      <h3>Defensa en profundidad</h3>
+      <p>El nombre raro dificulta el reconocimiento visual. La protección real es RLS + GRANT + firma. Manipular la bitácora se detecta.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué contarlo así</b><p>Un evaluador que oiga “seguridad por oscuridad” tiene razón si nos quedamos en el nombre. Hay que decir las dos capas en voz alta.</p></div></div>
+</section>
+
+<!-- 25 -->
+<section class="slide" data-title="Auth">
+  <div class="kicker">24 · Identidad · no inventar Google</div>
+  <h2>Bearer demo y JWT en paralelo</h2>
+  <div class="grid g2">
+    <div class="card svc">
+      <div class="tag">CONTRACT · lo que corre</div>
+      <p>Front manda <span class="mono">Authorization: Bearer demo</span>. <span class="mono">BearerAuthGuard</span> exige Bearer no vacío en checkout y GET orden. Preview no lo exige.</p>
+      <p class="tiny" style="margin-top:.5rem">No hay login contra Google. Sociales = Enterprise en el SDD.</p>
+    </div>
+    <div class="card svc ent">
+      <div class="tag">Construido, no cableado al CONTRACT</div>
+      <p><span class="mono">SupabaseAuthGuard</span> + JWKS + <span class="mono">RolesGuard</span> + schema identity. Listos para cuando el front deje el token literal.</p>
+      <p class="tiny" style="margin-top:.5rem">JWE solo cifra <span class="mono">guest_info_enc</span> (HU5), no el JWT de sesión.</p>
+    </div>
+  </div>
+  <div class="why"><div><b>Por qué no sustituir ya</b><p>Verificar JWKS rompería el front frozen: <span class="mono">"demo"</span> no es un JWT. Misma lógica que AdminGuard: el reemplazo existe, el switch no está tirado.</p></div></div>
+</section>
+
+<!-- 26 -->
+<section class="slide" data-title="GKE">
+  <div class="kicker">25 · Despliegue vivo</div>
+  <h2>Autopilot, 1 réplica, un solo LoadBalancer</h2>
+  <svg class="diag" viewBox="0 0 980 240" aria-label="GKE Autopilot">
+    <rect x="200" y="20" width="760" height="200" rx="16" fill="#EBE4D6" stroke="#D4CBB8"/>
+    <text x="230" y="48" font-family="IBM Plex Mono,monospace" font-size="12" fill="#2E5EAA">GKE Autopilot · namespace ecommerce · 1 replica / Deployment</text>
+    <rect x="30" y="90" width="140" height="80" rx="12" fill="#F6E6C8" stroke="#C1652E" stroke-width="2"/>
+    <text x="100" y="122" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="14">Internet</text>
+    <text x="100" y="144" text-anchor="middle" font-size="11" fill="#C1652E">LB frontend</text>
+    <rect x="230" y="80" width="200" height="100" rx="12" fill="#DCE6F4" stroke="#2E5EAA" stroke-width="2"/>
+    <text x="330" y="118" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="15">frontend nginx</text>
+    <text x="330" y="140" text-anchor="middle" font-size="11">LoadBalancer :80</text>
+    <text x="330" y="158" text-anchor="middle" font-size="11" fill="#1F4685">/api/v1 → gateway</text>
+    <rect x="470" y="80" width="160" height="100" rx="12" fill="#FFFcf7" stroke="#2E5EAA"/>
+    <text x="550" y="122" text-anchor="middle" font-size="14">api-gateway</text>
+    <text x="550" y="144" text-anchor="middle" font-size="11">ClusterIP :3000</text>
+    <rect x="670" y="50" width="120" height="48" rx="8" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="730" y="78" text-anchor="middle" font-size="12">catalog</text>
+    <rect x="810" y="50" width="120" height="48" rx="8" fill="#FFFcf7" stroke="#D4CBB8"/>
+    <text x="870" y="78" text-anchor="middle" font-size="12">coupon</text>
+    <rect x="670" y="115" width="120" height="48" rx="8" fill="#F6E6C8" stroke="#C1652E"/>
+    <text x="730" y="143" text-anchor="middle" font-size="12">discount</text>
+    <rect x="810" y="115" width="120" height="48" rx="8" fill="#DCEEE4" stroke="#2F8F5B"/>
+    <text x="870" y="143" text-anchor="middle" font-size="12">order</text>
+    <line x1="170" y1="130" x2="230" y2="130" stroke="#C1652E" stroke-width="2"/>
+    <line x1="430" y1="130" x2="470" y2="130" stroke="#2E5EAA" stroke-width="2"/>
+  </svg>
+  <p class="live">Demo viva · frontend http://35.226.83.92 · micros ClusterIP · gateway no tiene IP pública</p>
+  <div class="why"><div><b>Por qué no LB en cada micro</b><p>Exponer :3001–:3004 sería saltarse el perímetro. Kata E1 llevaba más pods (Rabbit, etc.). Aquí el costo es consciente: 1 réplica vs HPA 2–6 del diseño.</p></div></div>
+</section>
+
+<!-- 27 -->
+<section class="slide" data-title="CI/CD">
+  <div class="kicker">26 · CI/CD</div>
+  <h2>El pipeline es la puerta de calidad</h2>
+  <div class="flow" style="margin-bottom:1.2rem">
+    <div class="node"><b>push main</b>GitHub Actions</div><span class="arr">→</span>
+    <div class="node"><b>test:coverage</b>gate 80%</div><span class="arr">→</span>
+    <div class="node"><b>WIF</b>Artifact Registry</div><span class="arr">→</span>
+    <div class="node"><b>kubectl</b>rollout namespace ecommerce</div>
+  </div>
+  <p>Siete imágenes (6 micros + frontend). Tag SHA + <span class="mono">latest</span>. Smoke mental: products + preview vía nginx. Local: <span class="mono">docker compose up</span> — GKE no es requisito de los 20 minutos.</p>
+  <div class="why"><div><b>Por qué WIF, no JSON key</b><p>Workload Identity Federation evita secretos de larga vida en GitHub. Misma idea que el SDD para pods: ninguna clave de service account montada como archivo.</p></div></div>
+</section>
+
+<!-- 28 -->
+<section class="slide" data-title="MVP vs Enterprise">
+  <div class="kicker">27 · Dos niveles</div>
+  <h2>Qué se demuestra vs qué se dejó listo</h2>
+  <table class="skus">
+    <thead><tr><th>Capacidad</th><th>MVP (se corre)</th><th>Enterprise (cosido)</th></tr></thead>
+    <tbody>
+      <tr><td>Auth</td><td>Bearer demo + AdminGuard</td><td>JWT JWKS, roles, sociales</td></tr>
+      <tr><td>Mensajería</td><td>Redis Pub/Sub + outbox</td><td>RabbitMQ durable / DLQ</td></tr>
+      <tr><td>Consistencia</td><td>Saga orquestada + release</td><td>Coreografía post-pago</td></tr>
+      <tr><td>Red interna</td><td>X-Internal-Token</td><td>mTLS + Workload Identity</td></tr>
+      <tr><td>Escala</td><td>1 réplica Autopilot</td><td>HPA, Ingress, Secret Manager</td></tr>
+      <tr><td>Motor</td><td>3 estrategias + cap</td><td>Misma interfaz, más reglas</td></tr>
+    </tbody>
+  </table>
+  <div class="why"><div><b>Por qué no “falta todo”</b><p>Las interfaces (<span class="mono">EventPublisher</span>, <span class="mono">IdentityProvider</span>, AdminGuard reemplazable) están en el código del MVP. La sustentación muestra el diff, no una pizarra.</p></div></div>
+</section>
+
+<!-- 29 -->
+<section class="slide" data-title="Mapa mental">
+  <div class="kicker">28 · Cierre</div>
+  <h2>Mapa mental de decisiones</h2>
+  <div class="mind">
+    <div class="card svc"><h3>Perímetro</h3><p class="tiny">Un gateway. ClusterIP. Token interno. Cents→USD en el borde.</p></div>
+    <div class="card svc"><h3>Datos</h3><p class="tiny">Schema por contexto. Snapshots. HMAC. Sin JOIN cruzado.</p></div>
+    <div class="card svc warm"><h3>Dinero</h3><p class="tiny">Strategy en cascada. Cap al final. Centavos. 569.29.</p></div>
+    <div class="card svc ok"><h3>Distribuido</h3><p class="tiny">Saga orquestada. Un release. Outbox. SSE eventual.</p></div>
+    <div class="card svc"><h3>Costo</h3><p class="tiny">Autopilot 1 réplica. Redis hoy. Rabbit mañana.</p></div>
+    <div class="card svc"><h3>Contrato</h3><p class="tiny">4 SKUs. Bearer demo. Front frozen. No Google.</p></div>
+  </div>
+  <div class="why"><div><b>Frase para la mesa</b><p>No construimos menos: separamos lo que se ejecuta de lo que se deja enchufable. El criterio de ingeniería es esa frontera, no el número de pods.</p></div></div>
+</section>
+
+<!-- 30 -->
+<section class="slide" data-title="Gracias">
+  <div class="kicker">29 · Fin</div>
+  <h1>Preguntas</h1>
+  <p class="lead">Si hay que ir a código: motor primero (<span class="mono">discount-service</span>), saga después (<span class="mono">checkout.saga.ts</span>), borde al final (gateway + CONTRACT).</p>
+  <div class="title-meta">
+    <span class="pill">→ siguiente</span>
+    <span class="pill">F pantalla completa</span>
+    <span class="pill">Esc salir</span>
+  </div>
+  <p class="muted tiny">Demo: Laptop + Mouse + Libro + WELCOME2026 = 569.29 · Front <span class="mono">http://35.226.83.92</span></p>
+</section>
+
+</div>
+
+<div class="hud">
+  <span id="pos">1 / 30</span>
+  <div class="bar"><i id="bar"></i></div>
+  <span class="hint">← → · espacio · F</span>
+</div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, n=slides.length;
+  var pos=document.getElementById('pos');
+  var bar=document.getElementById('bar');
+  function show(k){
+    i=(k+n)%n;
+    slides.forEach(function(s,j){s.classList.toggle('on', j===i);});
+    pos.textContent=(i+1)+' / '+n;
+    bar.style.width=((i)/(n-1)*100)+'%';
+  }
+  function next(){show(i+1)}
+  function prev(){show(i-1)}
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='Backspace'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){e.preventDefault();show(0);}
+    else if(e.key==='End'){e.preventDefault();show(n-1);}
+    else if(e.key==='f'||e.key==='F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});
+      else document.exitFullscreen();
+    }
+    else if(e.key==='Escape' && document.fullscreenElement){document.exitFullscreen();}
+  });
+  document.addEventListener('click', function(e){
+    if(e.target.closest('a,button')) return;
+    var x=e.clientX / window.innerWidth;
+    if(x>0.66) next(); else if(x<0.33) prev();
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>

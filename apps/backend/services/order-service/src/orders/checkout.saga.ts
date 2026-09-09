@@ -1,6 +1,6 @@
 import type { CartItemInput, CatalogClient } from "../clients/catalog.client";
 import type { CouponClient, ResolvedCoupon } from "../clients/coupon.client";
-import type { DiscountClient } from "../clients/discount.client";
+import type { CheckoutBreakdown, DiscountClient } from "../clients/discount.client";
 import type {
   CreateOrderInput,
   GuestInfo,
@@ -16,7 +16,7 @@ export interface CheckoutInput {
 }
 
 export type CheckoutResult =
-  | { ok: true; order: PersistedOrder }
+  | { ok: true; order: PersistedOrder; breakdown: CheckoutBreakdown }
   | { ok: false; reason: "STOCK_INSUFFICIENT"; productId: string }
   | { ok: false; reason: "DOWNSTREAM_ERROR"; detail: string }
   | { ok: false; reason: "PERSISTENCE_FAILED" };
@@ -83,7 +83,7 @@ export class CheckoutSaga {
 
       try {
         const order = await this.repository.createOrder(orderInput);
-        return { ok: true, order };
+        return { ok: true, order, breakdown };
       } catch {
         await this.catalog.releaseStock(input.items);
         return { ok: false, reason: "PERSISTENCE_FAILED" };

@@ -81,6 +81,7 @@ describe("CheckoutSaga", () => {
     expect(result).toEqual({
       ok: true,
       order: { id: "order-1", status: "CONFIRMED", finalTotal: 63000, createdAt: new Date("2026-06-15") },
+      breakdown: BREAKDOWN,
     });
     expect(coupons.resolve).not.toHaveBeenCalled();
     expect(discount.calculate).toHaveBeenCalledWith({

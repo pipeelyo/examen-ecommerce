@@ -47,6 +47,15 @@ async function calculate(input: unknown) {
   return result.body as Record<string, unknown>;
 }
 
+function toPublicOrder(body: unknown) {
+  const record = (body ?? {}) as Record<string, unknown>;
+  const normalized = {
+    ...record,
+    orderId: record.orderId ?? record.id ?? null,
+  };
+  return convertBreakdownToDollars(normalized as CheckoutBreakdownCents);
+}
+
 @Controller()
 export class CheckoutController {
   @Post("checkout/preview")
@@ -80,7 +89,7 @@ export class CheckoutController {
       res.status(status).json(mapOrderServiceError(status, respBody));
       return;
     }
-    res.status(status).json(convertBreakdownToDollars(respBody as CheckoutBreakdownCents));
+    res.status(status).json(toPublicOrder(respBody));
   }
 
   @Get("orders/:id")
@@ -91,6 +100,6 @@ export class CheckoutController {
       res.status(status).json(mapOrderServiceError(status, body));
       return;
     }
-    res.status(status).json(convertBreakdownToDollars(body as CheckoutBreakdownCents));
+    res.status(status).json(toPublicOrder(body));
   }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   ConflictException,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -13,6 +14,7 @@ import {
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InternalTokenGuard } from "../common/internal-token.guard";
 import { CheckoutRequestDto } from "./dto/checkout-request.dto";
+import { toOrderContractFromCheckout, toOrderContractFromPersisted } from "./order-response.mapper";
 import { OrdersService } from "./orders.service";
 
 @ApiTags("orders")
@@ -23,11 +25,12 @@ export class OrdersController {
   constructor(private readonly orders: OrdersService) {}
 
   @Post("checkout")
+  @HttpCode(201)
   @ApiOperation({ summary: "Orquesta la saga: reservar, resolver cupon, calcular, persistir" })
   async checkout(@Body() dto: CheckoutRequestDto) {
     const result = await this.orders.checkout(dto);
     if (result.ok) {
-      return result.order;
+      return toOrderContractFromCheckout(result.order, result.breakdown);
     }
     if (result.reason === "STOCK_INSUFFICIENT") {
       throw new ConflictException({
@@ -48,6 +51,6 @@ export class OrdersController {
     if (!order) {
       throw new NotFoundException("Orden no encontrada");
     }
-    return order;
+    return toOrderContractFromPersisted(order);
   }
 }

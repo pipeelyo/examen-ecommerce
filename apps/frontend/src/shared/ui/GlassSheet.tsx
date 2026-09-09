@@ -34,7 +34,7 @@ export function GlassSheet({ open, title, onClose, children }: GlassSheetProps) 
               {title}
             </h2>
           </div>
-          <Button type="button" variant="ghost" size="icon" className="size-9 min-h-0" onClick={onClose} aria-label="Cerrar">
+          <Button type="button" variant="ghost" size="icon" className="size-11 min-h-0" onClick={onClose} aria-label="Cerrar">
             <X className="size-4" />
           </Button>
         </header>

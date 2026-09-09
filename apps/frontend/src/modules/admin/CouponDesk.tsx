@@ -215,7 +215,7 @@ export function CouponDesk() {
                           type="button"
                           variant="glass"
                           size="icon"
-                          className="size-9"
+                          className="size-9 max-md:size-11"
                           data-tone="danger"
                           aria-label={`Eliminar ${coupon.code}`}
                           onClick={() => setPendingDelete(coupon)}

@@ -59,7 +59,7 @@ export function ProductGrid({
         >
           Piezas en sala
         </h1>
-        <div className="mt-4 flex min-w-0 flex-wrap gap-2" role="group" aria-label="Filtrar categoría">
+        <div className="mt-4 flex min-w-0 flex-wrap gap-2 max-md:gap-2.5" role="group" aria-label="Filtrar categoría">
         <FilterChip
           label="Todos"
           icon={LayoutGrid}
@@ -154,7 +154,7 @@ function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.875rem] transition-[color,background-color,border-color] duration-200 ease-out',
+        'inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[0.875rem] transition-[color,background-color,border-color] duration-200 ease-out max-md:min-h-11',
         active ? 'bg-ink text-card' : 'border border-line bg-card text-muted hover:text-ink',
       )}
     >

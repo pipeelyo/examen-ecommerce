@@ -81,7 +81,7 @@ export function CouponCalendar({ coupons }: { coupons: CalendarCoupon[] }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8 min-h-8"
+          className="size-8 min-h-8 max-md:size-10 max-md:min-h-10"
           aria-label="Mes anterior"
           onClick={() => setCursor((current) => shiftMonth(current.year, current.month, -1))}
         >
@@ -97,7 +97,7 @@ export function CouponCalendar({ coupons }: { coupons: CalendarCoupon[] }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8 min-h-8"
+          className="size-8 min-h-8 max-md:size-10 max-md:min-h-10"
           aria-label="Mes siguiente"
           onClick={() => setCursor((current) => shiftMonth(current.year, current.month, 1))}
         >

@@ -10,7 +10,11 @@ interface QtyStepperProps {
 }
 
 export function QtyStepper({ value, max, onIncrement, onDecrement, labelledBy, compact }: QtyStepperProps) {
-  const size = compact ? 'size-8' : 'size-9'
+  // compact (bolsa/carrito) es size-8 (32px) en desktop, donde el mouse
+  // apunta con precision — pero esa misma fila se usa en el CartSheet
+  // mobile (lg:hidden), donde 32px queda por debajo del minimo tactil de
+  // --thumb (44px). max-lg: lo sube solo en mobile/tablet.
+  const size = compact ? 'size-8 max-lg:size-10' : 'size-9'
 
   return (
     <div className="btn-glass inline-flex w-fit items-center rounded-full" role="group" aria-labelledby={labelledBy}>

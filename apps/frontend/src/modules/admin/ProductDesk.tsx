@@ -45,7 +45,7 @@ function StockStepper({
     <div className="btn-glass inline-flex w-fit items-center rounded-full" role="group" aria-label={`Stock de ${name}`}>
       <button
         type="button"
-        className="flex size-9 items-center justify-center text-base"
+        className="flex size-9 items-center justify-center text-base max-md:size-11"
         aria-label={`Quitar stock de ${name}`}
         disabled={value <= 0}
         onClick={() => onChange(value - 1)}
@@ -57,7 +57,7 @@ function StockStepper({
       </span>
       <button
         type="button"
-        className="flex size-9 items-center justify-center text-base"
+        className="flex size-9 items-center justify-center text-base max-md:size-11"
         aria-label={`Agregar stock de ${name}`}
         disabled={value >= 999}
         onClick={() => onChange(value + 1)}
@@ -145,7 +145,7 @@ function StockEditor({
             type="button"
             variant="glass"
             size="icon"
-            className="size-9 shrink-0"
+            className="size-9 shrink-0 max-md:size-11"
             data-tone="sage"
             onClick={() => onConfirm(draft)}
             aria-label={`Confirmar stock de ${product.name}`}
@@ -298,12 +298,12 @@ export function ProductDesk() {
                     <StockEditor product={product} onConfirm={(next) => confirmStock(product, next)} />
                   </td>
                   <td className="w-28">
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div className="flex items-center justify-center gap-1.5 max-md:gap-2.5">
                       <Button
                         type="button"
                         variant="glass"
                         size="icon"
-                        className="size-9"
+                        className="size-9 max-md:size-11"
                         aria-label={`Editar ${product.name}`}
                         onClick={() => setEditor(product)}
                       >
@@ -313,7 +313,7 @@ export function ProductDesk() {
                         type="button"
                         variant="glass"
                         size="icon"
-                        className="size-9"
+                        className="size-9 max-md:size-11"
                         data-tone="danger"
                         aria-label={`Eliminar ${product.name}`}
                         onClick={() => setPendingDelete(product)}

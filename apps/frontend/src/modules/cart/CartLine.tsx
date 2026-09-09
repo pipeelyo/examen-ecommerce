@@ -44,7 +44,7 @@ export function CartLineRow({ line }: { line: CartLine }) {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 min-h-8 text-muted hover:text-danger"
+                  className="size-8 min-h-8 text-muted hover:text-danger max-lg:size-10 max-lg:min-h-10"
                   aria-label={`Quitar ${line.product.name}`}
                   onClick={() => remove(line.product.id)}
                 >

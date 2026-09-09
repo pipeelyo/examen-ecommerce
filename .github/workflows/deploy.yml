@@ -91,12 +91,29 @@ jobs:
           project_id: ${{ env.PROJECT }}
 
       - name: Ensure shared service secrets exist
+        env:
+          CATALOG_DATABASE_URL: ${{ secrets.CATALOG_DATABASE_URL }}
+          CATALOG_DIRECT_URL: ${{ secrets.CATALOG_DIRECT_URL }}
+          COUPON_DATABASE_URL: ${{ secrets.COUPON_DATABASE_URL }}
+          COUPON_DIRECT_URL: ${{ secrets.COUPON_DIRECT_URL }}
         run: |
           kubectl create namespace ecommerce --dry-run=client -o yaml | kubectl apply -f -
+          # Coupon must use schema=coupon. Dedicated COUPON_* secrets win;
+          # otherwise rewrite schema=catalog → schema=coupon from CATALOG_*.
+          if [ -z "$COUPON_DATABASE_URL" ]; then
+            COUPON_DATABASE_URL="${CATALOG_DATABASE_URL//schema=catalog/schema=coupon}"
+          fi
+          if [ -z "$COUPON_DIRECT_URL" ]; then
+            if [ -n "$CATALOG_DIRECT_URL" ]; then
+              COUPON_DIRECT_URL="${CATALOG_DIRECT_URL//schema=catalog/schema=coupon}"
+            else
+              COUPON_DIRECT_URL="$COUPON_DATABASE_URL"
+            fi
+          fi
           kubectl -n ecommerce create secret generic service-secrets \
             --from-literal=internal-service-token="${{ secrets.INTERNAL_SERVICE_TOKEN || 'dev-internal-token' }}" \
-            --from-literal=coupon-database-url="${{ secrets.CATALOG_DATABASE_URL }}" \
-            --from-literal=coupon-direct-url="${{ secrets.CATALOG_DIRECT_URL }}" \
+            --from-literal=coupon-database-url="$COUPON_DATABASE_URL" \
+            --from-literal=coupon-direct-url="$COUPON_DIRECT_URL" \
             --dry-run=client -o yaml | kubectl apply -f -
           if [ -n "${{ secrets.INTERNAL_SERVICE_TOKEN }}" ]; then
             kubectl -n ecommerce create secret generic internal-token \

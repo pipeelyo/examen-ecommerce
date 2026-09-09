@@ -32,7 +32,14 @@ export function BuyerShell() {
   }
 
   return (
-    <div className={cn('flex min-h-svh', desktop ? 'h-svh overflow-hidden flex-col' : 'flex-col')}>
+    // h-svh + overflow-hidden en AMBAS ramas (no solo desktop): .shop-pane
+    // (y toda la cadena flex-1/min-h-0 hasta aqui) esta hecha para scroll
+    // INTERNO con overflow-y-auto, no para que la pagina crezca con el
+    // contenido. Sin una altura acotada arriba, un contenedor flex-basis:0
+    // con min-h-0 se permite encoger a ~0 en vez de expandirse — eso dejaba
+    // el catalogo invisible en mobile. MobileBar es position:fixed, asi que
+    // no le afecta que main pase a tener overflow-hidden + scroll interno.
+    <div className="flex h-svh flex-col overflow-hidden">
       <PreviewSync />
       <a
         href="#catalog-title"

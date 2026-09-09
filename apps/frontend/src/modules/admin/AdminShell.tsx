@@ -30,7 +30,12 @@ export function AdminShell() {
   }, [section])
 
   return (
-    <div className={cn('flex min-h-svh', desktop ? 'h-svh overflow-hidden' : 'flex-col')}>
+    // h-svh + overflow-hidden tambien en mobile: ModuleStage (aside +
+    // TablePane) depende de una altura acotada arriba para su scroll
+    // interno; sin ella, flex-basis:0 + min-h-0 colapsa a ~0 en vez de
+    // expandirse (mismo bug que en BuyerShell). AdminNavBar es
+    // position:fixed, no le afecta que main pase a overflow-hidden.
+    <div className={cn('flex h-svh overflow-hidden', desktop ? '' : 'flex-col')}>
       <a
         href="#admin-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-40 focus:rounded-full focus:bg-card focus:px-4 focus:py-2"

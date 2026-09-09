@@ -1,3 +1,5 @@
+import { ConflictException } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 import { CouponsService } from "../../src/coupons.service";
 import type { CouponsRepository } from "../../src/coupons.repository";
@@ -80,6 +82,40 @@ describe("CouponsService", () => {
     service.create(input);
 
     expect(repo.create).toHaveBeenCalledWith(input);
+  });
+
+  it("create traduce un codigo duplicado (Prisma P2002) a un 409 claro, no a un 500 crudo", async () => {
+    const duplicateError = new Prisma.PrismaClientKnownRequestError("Unique constraint failed on the fields: (`code`)", {
+      code: "P2002",
+      clientVersion: "6.19.3",
+    });
+    const repo = fakeRepository({
+      create: vi.fn().mockRejectedValue(duplicateError),
+    });
+    const service = new CouponsService(repo);
+    const input = {
+      code: "WELCOME2026",
+      label: "duplicado",
+      scope: "GLOBAL" as const,
+      discountPercent: 15,
+    };
+
+    await expect(service.create(input)).rejects.toMatchObject({
+      status: 409,
+      response: { code: "DUPLICATE_CODE", message: "Ya existe un cupón con el código WELCOME2026" },
+    });
+    await expect(service.create(input)).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it("create no oculta otros errores del repositorio detras del manejo de P2002", async () => {
+    const repo = fakeRepository({
+      create: vi.fn().mockRejectedValue(new Error("db unavailable")),
+    });
+    const service = new CouponsService(repo);
+
+    await expect(
+      service.create({ code: "X", label: "x", scope: "GLOBAL", discountPercent: 10 }),
+    ).rejects.toThrow("db unavailable");
   });
 
   it("update delega en el repositorio con el id y los cambios", () => {

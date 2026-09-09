@@ -16,6 +16,8 @@ export default defineConfig({
         "src/products/products.controller.ts",
         "src/coupons/coupons.controller.ts",
         "src/status/status.controller.ts",
+        "src/audit/audit.controller.ts",
+        "src/audit/audit-events.repository.ts",
       ],
       thresholds: {
         statements: 85,

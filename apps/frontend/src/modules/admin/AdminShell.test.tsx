@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PRODUCTS } from '@/mocks/seed'
 import { useAuthStore } from '@/modules/auth/store'
-import type { CouponDto, ProductDto } from '@/shared/types'
+import type { AuditEventDto, CouponDto, ProductDto } from '@/shared/types'
 import { AdminShell } from './AdminShell'
 
 let catalog: ProductDto[] = []
 let coupons: CouponDto[] = []
+let auditEvents: AuditEventDto[] = []
 
 vi.mock('@/shared/api/commerce', () => ({
   getProducts: () => Promise.resolve(catalog.map((product) => ({ ...product }))),
@@ -19,6 +20,7 @@ vi.mock('@/shared/api/commerce', () => ({
     if (!updated) throw new Error('missing coupon')
     return Promise.resolve(updated)
   },
+  getAuditEvents: () => Promise.resolve(auditEvents.map((event) => ({ ...event }))),
 }))
 
 describe('AdminShell', () => {
@@ -35,6 +37,18 @@ describe('AdminShell', () => {
         active: true,
         validFrom: null,
         validTo: '2027-12-31T23:59:59.000Z',
+      },
+    ]
+    auditEvents = [
+      {
+        id: 1,
+        entity_name: 'coupons',
+        operation: 'UPDATE',
+        row_pk: 'WELCOME2026',
+        actor: null,
+        old_data: { active: true },
+        new_data: { active: false },
+        occurred_at: '2026-09-09T00:00:00.000Z',
       },
     ]
     useAuthStore.getState().enterAdmin()
@@ -78,9 +92,14 @@ describe('AdminShell', () => {
     const welcomeRow = within(screen.getByRole('table')).getByText('WELCOME2026').closest('tr')
     if (!welcomeRow) throw new Error('missing WELCOME2026 row')
     await user.click(within(welcomeRow).getByRole('button', { name: 'Pausar' }))
+
     await user.click(screen.getByRole('button', { name: 'Bitácora' }))
     expect(screen.getByRole('heading', { name: 'Bitácora de auditoría' })).toBeInTheDocument()
-    expect(screen.getAllByText('WELCOME2026').length).toBeGreaterThan(1)
+    // La bitácora lee audit._x27f_evt_trace real (via GET /admin/audit) — el
+    // trigger de Postgres, no un eco local, es lo que la llenaría en
+    // producción. Aquí solo verificamos que renderiza lo que el backend
+    // devuelve, sembrado arriba en auditEvents.
+    expect(await screen.findByText('WELCOME2026')).toBeInTheDocument()
     expect(screen.getByText(/active: false/)).toBeInTheDocument()
   })
 })

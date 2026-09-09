@@ -36,6 +36,7 @@ function needsAdminToken(path: string, method: string): boolean {
     if (path === '/api/v1/coupons') return true
     return method === 'PATCH' || method === 'DELETE'
   }
+  if (path.startsWith('/api/v1/admin/audit')) return true
   return false
 }
 

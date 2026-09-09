@@ -46,6 +46,18 @@ export interface UpdateCouponDto {
   validTo?: string | null
 }
 
+/** Fila de audit._x27f_evt_trace vía GET /api/v1/admin/audit (SDD §06/§08). */
+export interface AuditEventDto {
+  id: number
+  entity_name: string
+  operation: 'INSERT' | 'UPDATE' | 'DELETE'
+  row_pk: string
+  actor: string | null
+  old_data: Record<string, unknown> | null
+  new_data: Record<string, unknown> | null
+  occurred_at: string
+}
+
 export interface CartItemInputDto {
   productId: string
   quantity: number

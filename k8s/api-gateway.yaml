@@ -45,6 +45,13 @@ spec:
                 secretKeyRef:
                   name: api-gateway-secrets
                   key: ADMIN_API_TOKEN
+            # Este si es secreto (lleva password real) — GET /admin/audit es
+            # el unico lector de audit._x27f_evt_trace (SDD §06/§08).
+            - name: AUDIT_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-gateway-secrets
+                  key: AUDIT_DATABASE_URL
           resources:
             requests:
               cpu: 100m

@@ -1,5 +1,6 @@
 import { apiRequest } from './client'
 import type {
+  AuditEventDto,
   CheckoutRequestDto,
   CheckoutResponseDto,
   CouponDto,
@@ -121,6 +122,11 @@ export async function updateCoupon(id: string, input: UpdateCouponDto): Promise<
 
 export function deleteCoupon(id: string): Promise<void> {
   return apiRequest(`/api/v1/coupons/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function getAuditEvents(entity?: string): Promise<AuditEventDto[]> {
+  const query = entity && entity !== 'todos' ? `?entity=${encodeURIComponent(entity)}` : ''
+  return apiRequest(`/api/v1/admin/audit${query}`)
 }
 
 export function previewCheckout(body: CheckoutRequestDto): Promise<CheckoutResponseDto> {

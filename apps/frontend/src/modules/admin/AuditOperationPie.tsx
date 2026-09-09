@@ -1,4 +1,4 @@
-import type { AuditEvent } from '@/mocks/auditBook'
+import type { AuditEventDto } from '@/shared/types'
 import { colorForInsight } from './AdminInsight'
 
 const OPS = [
@@ -48,7 +48,7 @@ function shareLabel(share: number): string {
   return `${share.toFixed(1)}%`
 }
 
-export function AuditOperationPie({ events }: { events: AuditEvent[] }) {
+export function AuditOperationPie({ events }: { events: AuditEventDto[] }) {
   const total = events.length
   const slices = OPS.map((op, index) => {
     const count = events.filter((event) => event.operation === op.key).length

@@ -96,6 +96,7 @@ jobs:
           CATALOG_DIRECT_URL: ${{ secrets.CATALOG_DIRECT_URL }}
           COUPON_DATABASE_URL: ${{ secrets.COUPON_DATABASE_URL }}
           COUPON_DIRECT_URL: ${{ secrets.COUPON_DIRECT_URL }}
+          AUDIT_DATABASE_URL: ${{ secrets.AUDIT_DATABASE_URL }}
         run: |
           kubectl create namespace ecommerce --dry-run=client -o yaml | kubectl apply -f -
           # Coupon must use schema=coupon. Dedicated COUPON_* secrets win;
@@ -136,8 +137,16 @@ jobs:
               --from-literal=DIRECT_URL="$ORDER_DIRECT_URL" \
               --dry-run=client -o yaml | kubectl apply -f -
           fi
+          # audit._x27f_evt_trace no tiene schema propio de servicio — cualquier
+          # connection string al mismo proyecto Supabase sirve (la query
+          # siempre califica audit.tabla completo). Sin AUDIT_DATABASE_URL
+          # dedicado, reusa CATALOG_DATABASE_URL en vez de pedir un secret mas.
+          if [ -z "$AUDIT_DATABASE_URL" ]; then
+            AUDIT_DATABASE_URL="$CATALOG_DATABASE_URL"
+          fi
           kubectl -n ecommerce create secret generic api-gateway-secrets \
             --from-literal=ADMIN_API_TOKEN="${{ secrets.ADMIN_API_TOKEN || 'dev-admin-token' }}" \
+            --from-literal=AUDIT_DATABASE_URL="$AUDIT_DATABASE_URL" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Apply and rollout

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Package, Pencil, Plus, ScrollText, ShoppingBag, Ticket, Trash2 } from 'lucide-react'
-import { useAuditBook, type AuditEvent } from '@/mocks/auditBook'
+import { getAuditEvents } from '@/shared/api/commerce'
+import type { AuditEventDto } from '@/shared/types'
 import { cn } from '@/shared/lib/cn'
 import { ModuleInsight, ModuleStage, TablePane } from './AdminFrame'
 import { AuditOperationPie } from './AuditOperationPie'
@@ -25,7 +26,7 @@ function iconForEntity(name: string) {
   return ScrollText
 }
 
-function iconForOp(operation: AuditEvent['operation']) {
+function iconForOp(operation: AuditEventDto['operation']) {
   return OP_ICON[operation]
 }
 
@@ -36,7 +37,7 @@ function formatWhen(iso: string): string {
   }).format(new Date(iso))
 }
 
-function payloadPreview(event: AuditEvent): string {
+function payloadPreview(event: AuditEventDto): string {
   const payload = event.new_data ?? event.old_data
   if (!payload) return '—'
   return Object.entries(payload)
@@ -45,8 +46,16 @@ function payloadPreview(event: AuditEvent): string {
 }
 
 export function AuditLedger() {
-  const events = useAuditBook((s) => s.events)
+  const [events, setEvents] = useState<AuditEventDto[]>([])
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [filter, setFilter] = useState<EntityFilter>('todos')
+
+  useEffect(() => {
+    void getAuditEvents()
+      .then(setEvents)
+      .catch(() => setLoadError('No se pudo cargar la bitácora'))
+  }, [])
+
   const visible = useMemo(
     () => (filter === 'todos' ? events : events.filter((event) => event.entity_name === filter)),
     [events, filter],
@@ -92,6 +101,11 @@ export function AuditLedger() {
         </ModuleInsight>
       }
     >
+      {loadError ? (
+        <p role="alert" className="shrink-0 px-6 pt-4 text-[0.9375rem] text-danger">
+          {loadError}
+        </p>
+      ) : null}
       <div className="flex shrink-0 flex-wrap gap-2 px-5 pt-4" role="group" aria-label="Filtrar entidad">
           {ENTITY_FILTERS.map((item) => {
             const active = item === filter

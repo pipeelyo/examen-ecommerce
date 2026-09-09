@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CircleCheck, CirclePause, Clock, Plus, Store, Scan, Ticket, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/modules/auth/store'
 import { getCoupons } from '@/shared/api/commerce'
 import { ApiError } from '@/shared/api/client'
 import type { CouponDto } from '@/shared/types'
@@ -36,7 +35,6 @@ function StatusMark({ status }: { status: ReturnType<typeof statusOf> }) {
 export function CouponDesk() {
   const [coupons, setCoupons] = useState<CouponDto[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
-  const actor = useAuthStore((s) => s.email)
   const now = new Date()
   const [editor, setEditor] = useState<CouponDto | 'new' | null>(null)
   const [pendingDelete, setPendingDelete] = useState<CouponDto | null>(null)
@@ -88,7 +86,7 @@ export function CouponDesk() {
   async function save(draft: Parameters<typeof persistCoupon>[0]) {
     const current = editor === 'new' || editor === null ? undefined : editor
     try {
-      await persistCoupon(draft, actor, current)
+      await persistCoupon(draft, current)
       await refresh()
       setEditor(null)
       const message = current ? `Se actualizó ${draft.code || current.code}.` : `Se creó ${draft.code}.`
@@ -103,7 +101,7 @@ export function CouponDesk() {
 
   async function flip(coupon: CouponDto) {
     try {
-      await togglePause(coupon, actor)
+      await togglePause(coupon)
       await refresh()
     } catch (err) {
       const message = err instanceof ApiError ? err.body.message : 'No se pudo cambiar el estado del cupón'
@@ -114,7 +112,7 @@ export function CouponDesk() {
   async function confirmDelete() {
     if (!pendingDelete) return
     try {
-      await purgeCoupon(pendingDelete, actor)
+      await purgeCoupon(pendingDelete)
       const message = `${pendingDelete.code} se eliminó.`
       setPendingDelete(null)
       await refresh()

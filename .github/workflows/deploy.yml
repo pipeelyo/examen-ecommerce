@@ -27,6 +27,8 @@ jobs:
       INTERNAL_SERVICE_TOKEN: dev-internal-token
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarCloud necesita historial completo para blame / new code
 
       - uses: actions/setup-node@v4
         with:
@@ -39,6 +41,13 @@ jobs:
 
       - name: test + coverage (gate 80%, 90-95% en motor/cupones)
         run: npm run test:coverage
+
+      - name: SonarCloud Scan
+        if: ${{ secrets.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
     needs: test

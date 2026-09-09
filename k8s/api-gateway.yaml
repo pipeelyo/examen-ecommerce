@@ -30,6 +30,11 @@ spec:
               value: http://discount-service:3001
             - name: ORDER_SERVICE_URL
               value: http://order-service:3004
+            # No es secreto: es la URL publica del proyecto Supabase (misma
+            # que usa el front). Habilita BearerAuthGuard para verificar JWT
+            # reales de Google login ademas del token demo del CONTRACT.md.
+            - name: SUPABASE_URL
+              value: https://cgnqftclzhgjlzollzye.supabase.co
             - name: INTERNAL_SERVICE_TOKEN
               valueFrom:
                 secretKeyRef:

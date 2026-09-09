@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useState } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { Field, FieldAlert, FieldSet } from '@/shared/ui/Field'
+import { isGoogleLoginAvailable, signInWithGoogle } from './googleAuth'
 import { accountForRole, signInWithPassword } from './signIn'
 import { useAuthStore } from './store'
 
@@ -13,6 +14,16 @@ export function LoginScreen() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const googleAvailable = isGoogleLoginAvailable()
+
+  async function onGoogleClick() {
+    setError(null)
+    try {
+      await signInWithGoogle()
+    } catch {
+      setError('No se pudo iniciar sesión con Google')
+    }
+  }
 
   async function enterWith(role: 'CUSTOMER' | 'ADMIN') {
     const account = accountForRole(role)
@@ -50,46 +61,58 @@ export function LoginScreen() {
         Roles IAM del SDD: <span className="text-ink">CUSTOMER</span> consulta catálogo y hace checkout;{' '}
         <span className="text-ink">ADMIN</span> gestiona productos y cupones, y consulta la bitácora.
       </p>
-      <form onSubmit={(event) => void onSubmit(event)} className="glass mt-10 flex flex-col gap-5 rounded-[1.5rem] p-7 sm:p-8">
-        <FieldSet legend="Entrar como">
-          <div className="grid grid-cols-2 gap-3">
-            <Button type="button" variant="ghost" disabled={pending} onClick={() => void enterWith('CUSTOMER')}>
-              CUSTOMER
+      <div className="glass mt-10 flex flex-col gap-5 rounded-[1.5rem] p-7 sm:p-8">
+        {googleAvailable ? (
+          <>
+            <Button type="button" variant="ghost" className="w-full" disabled={pending} onClick={() => void onGoogleClick()}>
+              Iniciar sesión con Google
             </Button>
-            <Button type="button" variant="ghost" disabled={pending} onClick={() => void enterWith('ADMIN')}>
-              ADMIN
-            </Button>
-          </div>
-        </FieldSet>
-        <Field
-          id={emailId}
-          type="email"
-          name="email"
-          label="Correo"
-          autoComplete="username"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-        />
-        <Field
-          id={passwordId}
-          type="password"
-          name="password"
-          label="Contraseña"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-        />
-        {error ? <FieldAlert id={errorId}>{error}</FieldAlert> : null}
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? 'Entrando…' : 'Entrar'}
-        </Button>
-      </form>
+            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-ink/50">
+              <span className="h-px flex-1 bg-ink/10" />o<span className="h-px flex-1 bg-ink/10" />
+            </div>
+          </>
+        ) : null}
+        <form onSubmit={(event) => void onSubmit(event)} className="flex flex-col gap-5">
+          <FieldSet legend="Entrar como">
+            <div className="grid grid-cols-2 gap-3">
+              <Button type="button" variant="ghost" disabled={pending} onClick={() => void enterWith('CUSTOMER')}>
+                CUSTOMER
+              </Button>
+              <Button type="button" variant="ghost" disabled={pending} onClick={() => void enterWith('ADMIN')}>
+                ADMIN
+              </Button>
+            </div>
+          </FieldSet>
+          <Field
+            id={emailId}
+            type="email"
+            name="email"
+            label="Correo"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+          />
+          <Field
+            id={passwordId}
+            type="password"
+            name="password"
+            label="Contraseña"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+          />
+          {error ? <FieldAlert id={errorId}>{error}</FieldAlert> : null}
+          <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? 'Entrando…' : 'Entrar'}
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }
